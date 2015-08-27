@@ -1,0 +1,52 @@
+portal_home:
+  pattern:   /
+  defaults:  { _controller: SmoovioPortalBundle:Page:home }
+
+# movies
+
+movie_detail:
+  pattern:   /movies/{id}/{slug}
+  defaults:  { _controller: SmoovioPortalBundle:Movie:detail }
+  requirements: { id: \d+ }
+
+movies_by_genre:
+  pattern:   /genres/{slug}/movies
+  defaults:  { _controller: SmoovioPortalBundle:Movie:listByGenre }
+
+movies_by_director:
+  pattern:   /directors/{id}/movies
+  defaults:  { _controller: SmoovioPortalBundle:Movie:listByDirector }
+
+movies_by_actor:
+  pattern:   /actors/{id}/movies
+  defaults:  { _controller: SmoovioPortalBundle:Movie:listByActor }
+
+# genres
+
+genres:
+  pattern:   /genres
+  defaults:  { _controller: SmoovioPortalBundle:Genre:list }
+
+# user
+
+auth_login:
+  pattern:   /login
+  defaults:  { _controller: SmoovioPortalBundle:Auth:login }
+
+auth_login_check:
+  pattern:   /login/login_check
+
+auth_logout:
+  pattern:  /logout
+
+auth_signup:
+  pattern:   /signup
+  defaults:  { _controller: SmoovioPortalBundle:Auth:signup }
+
+user_index:
+  pattern:   /profile
+  defaults:  { _controller: SmoovioPortalBundle:User:index }
+
+search:
+  pattern:   /search
+  defaults:  { _controller: SmoovioPortalBundle:Search:index }

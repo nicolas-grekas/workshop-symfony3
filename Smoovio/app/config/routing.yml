@@ -1,0 +1,4 @@
+smoovio_portal:
+    resource: "@SmoovioPortalBundle/Resources/config/routing.yml"
+    prefix:   /
+

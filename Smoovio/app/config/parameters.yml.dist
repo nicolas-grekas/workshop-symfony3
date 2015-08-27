@@ -1,0 +1,11 @@
+parameters:
+    database_driver: pdo_mysql
+    database_host: 127.0.0.1
+    database_port: null
+    database_name: vod
+    database_user: vod
+    database_password: vod
+    locale: en
+    secret: ThisTokenIsNeitherSecretButNeededForInsight
+    user_password: user
+    admin_password: admin

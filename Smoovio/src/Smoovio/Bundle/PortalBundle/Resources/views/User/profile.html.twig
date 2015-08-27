@@ -1,0 +1,16 @@
+{% extends 'SmoovioPortalBundle::layout.html.twig' %}
+
+{% block title 'My profile' %}
+
+{% block content %}
+    <h2 class="movie-title">Welcome {{ profile.username }}</h2>
+    <p>
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam at imperdiet odio, dignissim porttitor nisi. Proin ornare risus est. Fusce felis justo, pharetra non nunc id, posuere tincidunt tortor. Curabitur porta mi sit amet dolor fermentum congue. Quisque a rhoncus ligula, ut viverra dolor. Donec mauris leo, fermentum quis ipsum vitae, porta viverra lectus. Sed pretium gravida mauris, in malesuada arcu vehicula a. Phasellus a faucibus nibh. Vivamus euismod consequat leo nec venenatis. Proin tincidunt elit eu justo efficitur, blandit vestibulum dui imperdiet. Aenean quis tellus tortor.
+    </p>
+    <p>
+        Integer tempus vitae nunc nec vehicula. Sed diam ipsum, sollicitudin sed leo et, dapibus condimentum mauris. Sed egestas porta risus ac mattis. Aliquam sed orci hendrerit, rutrum risus congue, venenatis risus. Nulla sem nunc, consequat eu volutpat ac, ullamcorper at ligula. Nullam in dolor fermentum, ultricies odio in, ullamcorper nisi. Sed auctor est ut nunc vehicula cursus. Nullam molestie tristique tellus, a gravida ex viverra vel. Cras et aliquam lacus. Curabitur aliquam non urna nec facilisis. Suspendisse justo odio, pharetra ac eros eget, pulvinar tempor elit. Sed justo enim, efficitur vitae mi commodo, luctus maximus ex. Nulla facilisis ante dui, et molestie sem imperdiet quis. Maecenas quam ex, luctus quis justo blandit, sollicitudin volutpat elit. Aenean eget nisl non lorem consectetur venenatis.
+    </p>
+
+    {% render controller('SmoovioPortalBundle:Movie:random') %}
+
+{% endblock %}

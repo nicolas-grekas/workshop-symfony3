@@ -1,0 +1,4 @@
+Smoovio\Bundle\CoreBundle\Entity\Actor:
+  type: entity
+  table: actor
+  repositoryClass: Smoovio\Bundle\CoreBundle\Repository\ActorRepository

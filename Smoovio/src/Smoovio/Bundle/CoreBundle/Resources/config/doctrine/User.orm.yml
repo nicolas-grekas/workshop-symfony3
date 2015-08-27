@@ -1,0 +1,25 @@
+Smoovio\Bundle\CoreBundle\Entity\User:
+  type: entity
+  table: user
+  id:
+    id:
+      type: integer
+      generator: { strategy: AUTO }
+  fields:
+    username:
+      type: string
+    password:
+      type: string
+    email:
+      type: string
+    salt:
+      type: string
+    userAgent:
+      type: string
+      nullable: true
+    lastLogin:
+      type: datetime
+      nullable: true
+    ipAddress:
+      type: string
+      nullable: true

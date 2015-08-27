@@ -1,0 +1,9 @@
+parameters:
+    database_driver: pdo_mysql
+    database_host: localhost
+    database_port: null
+    database_name: smoovio_sflive2015
+    database_user: root
+    database_password: ~
+    locale: en
+    secret: ThisTokenIsNeitherSecretButNeededForInsight
