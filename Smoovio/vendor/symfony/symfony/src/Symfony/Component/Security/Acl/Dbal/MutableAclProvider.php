@@ -111,7 +111,7 @@ class MutableAclProvider extends AclProvider implements MutableAclProviderInterf
 
     /**
      * Deletes the security identity from the database.
-     * ACL entries have the CASCADE option on their foreign key so they will also get deleted
+     * ACL entries have the CASCADE option on their foreign key so they will also get deleted.
      *
      * @param SecurityIdentityInterface $sid
      *
@@ -366,7 +366,7 @@ class MutableAclProvider extends AclProvider implements MutableAclProviderInterf
     }
 
     /**
-     * Updates a user security identity when the user's username changes
+     * Updates a user security identity when the user's username changes.
      *
      * @param UserSecurityIdentity $usid
      * @param string               $oldUsername
@@ -458,7 +458,7 @@ class MutableAclProvider extends AclProvider implements MutableAclProviderInterf
      */
     protected function getInsertAccessControlEntrySql($classId, $objectIdentityId, $field, $aceOrder, $securityIdentityId, $strategy, $mask, $granting, $auditSuccess, $auditFailure)
     {
-        $query = <<<QUERY
+        $query = <<<'QUERY'
             INSERT INTO %s (
                 class_id,
                 object_identity_id,
@@ -535,7 +535,7 @@ QUERY;
      */
     protected function getInsertObjectIdentitySql($identifier, $classId, $entriesInheriting)
     {
-        $query = <<<QUERY
+        $query = <<<'QUERY'
               INSERT INTO %s (class_id, object_identifier, entries_inheriting)
               VALUES (%d, %s, %s)
 QUERY;
@@ -554,9 +554,9 @@ QUERY;
      *
      * @param SecurityIdentityInterface $sid
      *
-     * @throws \InvalidArgumentException
-     *
      * @return string
+     *
+     * @throws \InvalidArgumentException
      */
     protected function getInsertSecurityIdentitySql(SecurityIdentityInterface $sid)
     {
@@ -626,9 +626,9 @@ QUERY;
      *
      * @param SecurityIdentityInterface $sid
      *
-     * @throws \InvalidArgumentException
-     *
      * @return string
+     *
+     * @throws \InvalidArgumentException
      */
     protected function getSelectSecurityIdentityIdSql(SecurityIdentityInterface $sid)
     {
@@ -655,9 +655,9 @@ QUERY;
      *
      * @param SecurityIdentityInterface $sid
      *
-     * @throws \InvalidArgumentException
-     *
      * @return string
+     *
+     * @throws \InvalidArgumentException
      */
     protected function getDeleteSecurityIdentityIdSql(SecurityIdentityInterface $sid)
     {
@@ -673,9 +673,9 @@ QUERY;
      * @param int   $pk
      * @param array $changes
      *
-     * @throws \InvalidArgumentException
-     *
      * @return string
+     *
+     * @throws \InvalidArgumentException
      */
     protected function getUpdateObjectIdentitySql($pk, array $changes)
     {
@@ -723,9 +723,9 @@ QUERY;
      * @param int   $pk
      * @param array $sets
      *
-     * @throws \InvalidArgumentException
-     *
      * @return string
+     *
+     * @throws \InvalidArgumentException
      */
     protected function getUpdateAccessControlEntrySql($pk, array $sets)
     {
@@ -924,7 +924,7 @@ QUERY;
      */
     private function updateNewAceProperty($name, array $changes)
     {
-        list($old, $new) = $changes;
+        list(, $new) = $changes;
 
         $sids = new \SplObjectStorage();
         $classIds = new \SplObjectStorage();

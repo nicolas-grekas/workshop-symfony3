@@ -23,8 +23,7 @@ namespace Symfony\Component\Validator;
  * @author Bernhard Schussek <bschussek@gmail.com>
  *
  * @see MetadataInterface
- *
- * @deprecated Deprecated since version 2.5, to be removed in Symfony 3.0.
+ * @deprecated since version 2.5, to be removed in 3.0.
  *             Use {@link Mapping\PropertyMetadataInterface} instead.
  */
 interface PropertyMetadataInterface extends MetadataInterface
@@ -32,16 +31,16 @@ interface PropertyMetadataInterface extends MetadataInterface
     /**
      * Returns the name of the property.
      *
-     * @return string The property name.
+     * @return string The property name
      */
     public function getPropertyName();
 
     /**
      * Extracts the value of the property from the given container.
      *
-     * @param mixed $containingValue The container to extract the property value from.
+     * @param mixed $containingValue The container to extract the property value from
      *
-     * @return mixed The value of the property.
+     * @return mixed The value of the property
      */
     public function getPropertyValue($containingValue);
 }

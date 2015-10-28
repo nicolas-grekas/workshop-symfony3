@@ -75,20 +75,23 @@ abstract class RegisterMappingsPass implements CompilerPassInterface
 
     /**
      * Naming pattern for the configuration service id, for example
-     * 'doctrine.orm.%s_configuration'
+     * 'doctrine.orm.%s_configuration'.
+     *
      * @var string
      */
     private $configurationPattern;
 
     /**
      * Method name to call on the configuration service. This depends on the
-     * Doctrine implementation. For example addEntityNamespace
+     * Doctrine implementation. For example addEntityNamespace.
+     *
      * @var string
      */
     private $registerAliasMethodName;
 
     /**
      * Map of alias to namespace.
+     *
      * @var string[]
      */
     private $aliasMap;
@@ -103,20 +106,18 @@ abstract class RegisterMappingsPass implements CompilerPassInterface
      * The $aliasMap parameter can be used to define bundle namespace shortcuts like the
      * DoctrineBundle provides automatically for objects in the default Entity/Document folder.
      *
-     * @param Definition|Reference $driver                  Driver DI definition or reference.
-     * @param string[]             $namespaces              List of namespaces handled by $driver.
+     * @param Definition|Reference $driver                  Driver DI definition or reference
+     * @param string[]             $namespaces              List of namespaces handled by $driver
      * @param string[]             $managerParameters       List of container parameters that could
      *                                                      hold the manager name.
-     * @param string               $driverPattern           Pattern for the metadata driver service name.
-     * @param string               $enabledParameter        Service container parameter that must be
+     * @param string               $driverPattern           Pattern for the metadata driver service name
+     * @param string|false         $enabledParameter        Service container parameter that must be
      *                                                      present to enable the mapping. Set to false
      *                                                      to not do any check, optional.
-     * @param string               $configurationPattern    Pattern for the Configuration service name.
+     * @param string               $configurationPattern    Pattern for the Configuration service name
      * @param string               $registerAliasMethodName Name of Configuration class method to
      *                                                      register alias.
-     * @param string[]             $aliasMap                Map of alias to namespace.
-     *
-     * @since Support for bundle alias was added in Symfony 2.6
+     * @param string[]             $aliasMap                Map of alias to namespace
      */
     public function __construct($driver, array $namespaces, array $managerParameters, $driverPattern, $enabledParameter = false, $configurationPattern = '', $registerAliasMethodName = '', array $aliasMap = array())
     {
@@ -216,7 +217,7 @@ abstract class RegisterMappingsPass implements CompilerPassInterface
      *
      * @param ContainerBuilder $container
      *
-     * @return string The name of the active manager.
+     * @return string The name of the active manager
      *
      * @throws ParameterNotFoundException If none of the managerParameters is found in the container.
      */
@@ -231,7 +232,7 @@ abstract class RegisterMappingsPass implements CompilerPassInterface
             }
         }
 
-        throw new ParameterNotFoundException('None of the managerParameters resulted in a valid name');
+        throw new ParameterNotFoundException('Could not determine the Doctrine manager. Either Doctrine is not configured or a bundle is misconfigured.');
     }
 
     /**

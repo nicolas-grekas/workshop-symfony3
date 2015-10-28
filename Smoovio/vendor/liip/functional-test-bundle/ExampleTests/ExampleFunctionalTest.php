@@ -13,10 +13,6 @@ namespace Liip\FooBundle\Tests;
 
 use Liip\FunctionalTestBundle\Test\WebTestCase;
 
-use Symfony\Bundle\FrameworkBundle\Console\Application;
-use Symfony\Component\Console\Tester\ApplicationTester;
-use Symfony\Component\Console\Output\Output;
-
 /**
  * @author Lukas Smith
  * @author Daniel Barsotti
@@ -25,7 +21,7 @@ use Symfony\Component\Console\Output\Output;
 class ExampleFunctionalTest extends WebTestCase
 {
     /**
-     * Example using LiipFunctionalBundle the fixture loader
+     * Example using LiipFunctionalBundle the fixture loader.
      */
     public function testUserFooIndex()
     {
@@ -33,13 +29,14 @@ class ExampleFunctionalTest extends WebTestCase
 
         $client = $this->createClient();
         $crawler = $client->request('GET', '/users/foo');
+        $this->assertStatusCode(200, $client);
 
         $this->assertTrue($crawler->filter('html:contains("Email: foo@bar.com")')->count() > 0);
     }
 
-   /**
-    * Example using LiipFunctionalBundle WebTestCase helpers and with authentication
-    */
+    /**
+     * Example using LiipFunctionalBundle WebTestCase helpers and with authentication.
+     */
     public function testBasicAuthentication()
     {
         $this->loadFixtures(array('Liip\FooBundle\Tests\Fixtures\LoadUserData'));
@@ -60,5 +57,15 @@ class ExampleFunctionalTest extends WebTestCase
     {
         $content = $this->fetchContent('/', 'GET', false);
         $this->assertContains('login', $content);
+    }
+
+    public function testValidationErrors()
+    {
+        $client = $this->makeClient(true);
+        $crawler = $client->request('GET', '/users/1/edit');
+
+        $client->submit($crawler->selectButton('Save')->form());
+
+        $this->assertValidationErrors(array('data.username', 'data.email'), $client->getContainer());
     }
 }

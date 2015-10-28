@@ -19,41 +19,46 @@ use Symfony\Component\Config\FileLocator;
 class LiipFunctionalTestExtension extends Extension
 {
     /**
-     * XML config files to load
-     * @var array
-     */
-    protected $resources = array(
-        'config' => 'functional_test.xml',
-    );
-
-    /**
      * Loads the services based on your application configuration.
      *
-     * @param array $configs
+     * @param array            $configs
      * @param ContainerBuilder $container
      */
     public function load(array $configs, ContainerBuilder $container)
     {
-        $config = array_shift($configs);
-        foreach ($configs as $tmp) {
-            $config = array_replace_recursive($config, $tmp);
-        }
+        $config = $this->processConfiguration(new Configuration(), $configs);
 
-        $loader = $this->getFileLoader($container);
-        $loader->load($this->resources['config']);
+        $loader = new XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
+        $loader->load('functional_test.xml');
+        if (interface_exists('Symfony\Component\Validator\Validator\ValidatorInterface')) {
+            $loader->load('validator.xml');
+        }
 
         foreach ($config as $key => $value) {
-            $container->setParameter($this->getAlias().'.'.$key, $value);
+            // If the node is an array,
+            // e.g. "liip_functional_test.query.max_query_count",
+            // set the value as
+            // "liip_functional_test.query.max_query_count"
+            // instead of an array "liip_functional_test.query"
+            // with a "max_query_count" key.
+            if (is_array($value)) {
+                foreach ($value as $key2 => $value2) {
+                    $container->setParameter($this->getAlias().'.'.$key.
+                        '.'.$key2, $value2);
+                }
+            } else {
+                $container->setParameter($this->getAlias().'.'.$key, $value);
+            }
         }
-    }
 
-    /**
-     * Get File Loader
-     *
-     * @param ContainerBuilder $container
-     */
-    public function getFileLoader($container)
-    {
-        return new XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
+        $definition = $container->getDefinition('liip_functional_test.query.count_client');
+        if (method_exists($definition, 'setShared')) {
+            $definition->setShared(false);
+        } else {
+            // This block will never be reached with Symfony <2.8
+            // @codeCoverageIgnoreStart
+            $definition->setScope('prototype');
+            // @codeCoverageIgnoreEnd
+        }
     }
 }

@@ -38,6 +38,7 @@ use Symfony\Component\Console\Helper\TableHelper;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\Console\Event\ConsoleExceptionEvent;
 use Symfony\Component\Console\Event\ConsoleTerminateEvent;
+use Symfony\Component\Debug\Exception\FatalThrowableError;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
@@ -54,8 +55,6 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
  *     $app->run();
  *
  * @author Fabien Potencier <fabien@symfony.com>
- *
- * @api
  */
 class Application
 {
@@ -77,8 +76,6 @@ class Application
      *
      * @param string $name    The name of the application
      * @param string $version The version of the application
-     *
-     * @api
      */
     public function __construct($name = 'UNKNOWN', $version = 'UNKNOWN')
     {
@@ -107,8 +104,6 @@ class Application
      * @return int 0 if everything went fine, or an error code
      *
      * @throws \Exception When doRun returns Exception
-     *
-     * @api
      */
     public function run(InputInterface $input = null, OutputInterface $output = null)
     {
@@ -202,8 +197,6 @@ class Application
      * Set a helper set to be used with the command.
      *
      * @param HelperSet $helperSet The helper set
-     *
-     * @api
      */
     public function setHelperSet(HelperSet $helperSet)
     {
@@ -214,8 +207,6 @@ class Application
      * Get the helper set associated with the command.
      *
      * @return HelperSet The HelperSet instance associated with this command
-     *
-     * @api
      */
     public function getHelperSet()
     {
@@ -223,11 +214,9 @@ class Application
     }
 
     /**
-     * Set an input definition set to be used with this application.
+     * Set an input definition to be used with this application.
      *
      * @param InputDefinition $definition The input definition
-     *
-     * @api
      */
     public function setDefinition(InputDefinition $definition)
     {
@@ -247,7 +236,7 @@ class Application
     /**
      * Gets the help message.
      *
-     * @return string A help message.
+     * @return string A help message
      */
     public function getHelp()
     {
@@ -258,8 +247,6 @@ class Application
      * Sets whether to catch exceptions or not during commands execution.
      *
      * @param bool $boolean Whether to catch exceptions or not during commands execution
-     *
-     * @api
      */
     public function setCatchExceptions($boolean)
     {
@@ -270,8 +257,6 @@ class Application
      * Sets whether to automatically exit after a command execution or not.
      *
      * @param bool $boolean Whether to automatically exit after a command execution or not
-     *
-     * @api
      */
     public function setAutoExit($boolean)
     {
@@ -282,8 +267,6 @@ class Application
      * Gets the name of the application.
      *
      * @return string The application name
-     *
-     * @api
      */
     public function getName()
     {
@@ -294,8 +277,6 @@ class Application
      * Sets the application name.
      *
      * @param string $name The application name
-     *
-     * @api
      */
     public function setName($name)
     {
@@ -306,8 +287,6 @@ class Application
      * Gets the application version.
      *
      * @return string The application version
-     *
-     * @api
      */
     public function getVersion()
     {
@@ -318,8 +297,6 @@ class Application
      * Sets the application version.
      *
      * @param string $version The application version
-     *
-     * @api
      */
     public function setVersion($version)
     {
@@ -330,13 +307,15 @@ class Application
      * Returns the long version of the application.
      *
      * @return string The long application version
-     *
-     * @api
      */
     public function getLongVersion()
     {
-        if ('UNKNOWN' !== $this->getName() && 'UNKNOWN' !== $this->getVersion()) {
-            return sprintf('<info>%s</info> version <comment>%s</comment>', $this->getName(), $this->getVersion());
+        if ('UNKNOWN' !== $this->getName()) {
+            if ('UNKNOWN' !== $this->getVersion()) {
+                return sprintf('<info>%s</info> version <comment>%s</comment>', $this->getName(), $this->getVersion());
+            }
+
+            return sprintf('<info>%s</info>', $this->getName());
         }
 
         return '<info>Console Tool</info>';
@@ -348,8 +327,6 @@ class Application
      * @param string $name The command name
      *
      * @return Command The newly created command
-     *
-     * @api
      */
     public function register($name)
     {
@@ -359,9 +336,9 @@ class Application
     /**
      * Adds an array of command objects.
      *
-     * @param Command[] $commands An array of commands
+     * If a Command is not enabled it will not be added.
      *
-     * @api
+     * @param Command[] $commands An array of commands
      */
     public function addCommands(array $commands)
     {
@@ -374,12 +351,11 @@ class Application
      * Adds a command object.
      *
      * If a command with the same name already exists, it will be overridden.
+     * If the command is not enabled it will not be added.
      *
      * @param Command $command A Command object
      *
-     * @return Command The registered command
-     *
-     * @api
+     * @return Command|null The registered command if enabled or null
      */
     public function add(Command $command)
     {
@@ -412,8 +388,6 @@ class Application
      * @return Command A Command object
      *
      * @throws \InvalidArgumentException When command name given does not exist
-     *
-     * @api
      */
     public function get($name)
     {
@@ -441,8 +415,6 @@ class Application
      * @param string $name The command name or alias
      *
      * @return bool true if the command exists, false otherwise
-     *
-     * @api
      */
     public function has($name)
     {
@@ -452,14 +424,14 @@ class Application
     /**
      * Returns an array of all unique namespaces used by currently registered commands.
      *
-     * It does not returns the global namespace which always exists.
+     * It does not return the global namespace which always exists.
      *
-     * @return array An array of namespaces
+     * @return string[] An array of namespaces
      */
     public function getNamespaces()
     {
         $namespaces = array();
-        foreach ($this->commands as $command) {
+        foreach ($this->all() as $command) {
             $namespaces = array_merge($namespaces, $this->extractAllNamespaces($command->getName()));
 
             foreach ($command->getAliases() as $alias) {
@@ -520,8 +492,6 @@ class Application
      * @return Command A Command instance
      *
      * @throws \InvalidArgumentException When command name is incorrect or ambiguous
-     *
-     * @api
      */
     public function find($name)
     {
@@ -577,8 +547,6 @@ class Application
      * @param string $namespace A namespace name
      *
      * @return Command[] An array of Command instances
-     *
-     * @api
      */
     public function all($namespace = null)
     {
@@ -624,10 +592,12 @@ class Application
      *
      * @return string A string representing the Application
      *
-     * @deprecated Deprecated since version 2.3, to be removed in 3.0.
+     * @deprecated since version 2.3, to be removed in 3.0.
      */
     public function asText($namespace = null, $raw = false)
     {
+        @trigger_error('The '.__METHOD__.' method is deprecated since version 2.3 and will be removed in 3.0.', E_USER_DEPRECATED);
+
         $descriptor = new TextDescriptor();
         $output = new BufferedOutput(BufferedOutput::VERBOSITY_NORMAL, !$raw);
         $descriptor->describe($output, $this, array('namespace' => $namespace, 'raw_output' => true));
@@ -643,10 +613,12 @@ class Application
      *
      * @return string|\DOMDocument An XML string representing the Application
      *
-     * @deprecated Deprecated since version 2.3, to be removed in 3.0.
+     * @deprecated since version 2.3, to be removed in 3.0.
      */
     public function asXml($namespace = null, $asDom = false)
     {
+        @trigger_error('The '.__METHOD__.' method is deprecated since version 2.3 and will be removed in 3.0.', E_USER_DEPRECATED);
+
         $descriptor = new XmlDescriptor();
 
         if ($asDom) {
@@ -667,6 +639,8 @@ class Application
      */
     public function renderException($e, $output)
     {
+        $output->writeln('');
+
         do {
             $title = sprintf('  [%s]  ', get_class($e));
 
@@ -689,14 +663,13 @@ class Application
                 }
             }
 
-            $messages = array('', '');
+            $messages = array();
             $messages[] = $emptyLine = $formatter->format(sprintf('<error>%s</error>', str_repeat(' ', $len)));
             $messages[] = $formatter->format(sprintf('<error>%s%s</error>', $title, str_repeat(' ', max(0, $len - $this->stringWidth($title)))));
             foreach ($lines as $line) {
                 $messages[] = $formatter->format(sprintf('<error>  %s  %s</error>', $line[0], str_repeat(' ', $len - $line[1])));
             }
             $messages[] = $emptyLine;
-            $messages[] = '';
             $messages[] = '';
 
             $output->writeln($messages, OutputInterface::OUTPUT_RAW);
@@ -724,13 +697,11 @@ class Application
                 }
 
                 $output->writeln('');
-                $output->writeln('');
             }
         } while ($e = $e->getPrevious());
 
         if (null !== $this->runningCommand) {
             $output->writeln(sprintf('<info>%s</info>', sprintf($this->runningCommand->getSynopsis(), $this->getName())));
-            $output->writeln('');
             $output->writeln('');
         }
     }
@@ -837,6 +808,7 @@ class Application
 
         if (true === $input->hasParameterOption(array('--quiet', '-q'))) {
             $output->setVerbosity(OutputInterface::VERBOSITY_QUIET);
+            $input->setInteractive(false);
         } else {
             if ($input->hasParameterOption('-vvv') || $input->hasParameterOption('--verbose=3') || $input->getParameterOption('--verbose') === 3) {
                 $output->setVerbosity(OutputInterface::VERBOSITY_DEBUG);
@@ -879,15 +851,25 @@ class Application
 
         if ($event->commandShouldRun()) {
             try {
+                $e = null;
                 $exitCode = $command->run($input, $output);
-            } catch (\Exception $e) {
+            } catch (\Exception $x) {
+                $e = $x;
+            } catch (\Throwable $x) {
+                $e = new FatalThrowableError($x);
+            }
+            if (null !== $e) {
+                $event = new ConsoleExceptionEvent($command, $input, $output, $e, $e->getCode());
+                $this->dispatcher->dispatch(ConsoleEvents::EXCEPTION, $event);
+
+                if ($e !== $event->getException()) {
+                    $x = $e = $event->getException();
+                }
+
                 $event = new ConsoleTerminateEvent($command, $input, $output, $e->getCode());
                 $this->dispatcher->dispatch(ConsoleEvents::TERMINATE, $event);
 
-                $event = new ConsoleExceptionEvent($command, $input, $output, $e, $event->getExitCode());
-                $this->dispatcher->dispatch(ConsoleEvents::EXCEPTION, $event);
-
-                throw $event->getException();
+                throw $x;
             }
         } else {
             $exitCode = ConsoleCommandEvent::RETURN_CODE_DISABLED;
@@ -950,9 +932,9 @@ class Application
     {
         return new HelperSet(array(
             new FormatterHelper(),
-            new DialogHelper(),
-            new ProgressHelper(),
-            new TableHelper(),
+            new DialogHelper(false),
+            new ProgressHelper(false),
+            new TableHelper(false),
             new DebugFormatterHelper(),
             new ProcessHelper(),
             new QuestionHelper(),
@@ -985,7 +967,7 @@ class Application
     /**
      * Runs and parses mode CON if it's available, suppressing any error output.
      *
-     * @return string <width>x<height> or null if it could not be parsed
+     * @return string|null <width>x<height> or null if it could not be parsed
      */
     private function getConsoleMode()
     {
@@ -1044,7 +1026,7 @@ class Application
      * @param string             $name       The string
      * @param array|\Traversable $collection The collection
      *
-     * @return array A sorted array of similar string
+     * @return string[] A sorted array of similar string
      */
     private function findAlternatives($name, $collection)
     {
@@ -1104,7 +1086,7 @@ class Application
             return strlen($string);
         }
 
-        if (false === $encoding = mb_detect_encoding($string)) {
+        if (false === $encoding = mb_detect_encoding($string, null, true)) {
             return strlen($string);
         }
 
@@ -1121,7 +1103,7 @@ class Application
             return str_split($string, $width);
         }
 
-        if (false === $encoding = mb_detect_encoding($string)) {
+        if (false === $encoding = mb_detect_encoding($string, null, true)) {
             return str_split($string, $width);
         }
 
@@ -1152,7 +1134,7 @@ class Application
      *
      * @param string $name The full name of the command
      *
-     * @return array The namespaces of the command
+     * @return string[] The namespaces of the command
      */
     private function extractAllNamespaces($name)
     {

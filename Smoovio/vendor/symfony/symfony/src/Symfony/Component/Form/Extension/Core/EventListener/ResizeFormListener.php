@@ -102,10 +102,6 @@ class ResizeFormListener implements EventSubscriberInterface
         $form = $event->getForm();
         $data = $event->getData();
 
-        if (null === $data || '' === $data) {
-            $data = array();
-        }
-
         if (!is_array($data) && !($data instanceof \Traversable && $data instanceof \ArrayAccess)) {
             $data = array();
         }
@@ -184,22 +180,26 @@ class ResizeFormListener implements EventSubscriberInterface
     /**
      * Alias of {@link preSubmit()}.
      *
-     * @deprecated Deprecated since version 2.3, to be removed in 3.0. Use
-     *             {@link preSubmit()} instead.
+     * @deprecated since version 2.3, to be removed in 3.0.
+     *             Use {@link preSubmit()} instead.
      */
     public function preBind(FormEvent $event)
     {
+        @trigger_error('The '.__METHOD__.' method is deprecated since version 2.3 and will be removed in 3.0. Use the preSubmit() method instead.', E_USER_DEPRECATED);
+
         $this->preSubmit($event);
     }
 
     /**
      * Alias of {@link onSubmit()}.
      *
-     * @deprecated Deprecated since version 2.3, to be removed in 3.0. Use
-     *             {@link onSubmit()} instead.
+     * @deprecated since version 2.3, to be removed in 3.0.
+     *             Use {@link onSubmit()} instead.
      */
     public function onBind(FormEvent $event)
     {
+        @trigger_error('The '.__METHOD__.' method is deprecated since version 2.3 and will be removed in 3.0. Use the onSubmit() method instead.', E_USER_DEPRECATED);
+
         $this->onSubmit($event);
     }
 }

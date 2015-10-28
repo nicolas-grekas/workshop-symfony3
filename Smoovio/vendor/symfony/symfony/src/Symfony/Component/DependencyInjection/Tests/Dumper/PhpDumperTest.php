@@ -16,6 +16,8 @@ use Symfony\Component\DependencyInjection\Dumper\PhpDumper;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\DependencyInjection\Variable;
+use Symfony\Component\ExpressionLanguage\Expression;
 
 class PhpDumperTest extends \PHPUnit_Framework_TestCase
 {
@@ -85,12 +87,23 @@ class PhpDumperTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
+     * @dataProvider provideInvalidParameters
      * @expectedException \InvalidArgumentException
      */
-    public function testExportParameters()
+    public function testExportParameters($parameters)
     {
-        $dumper = new PhpDumper(new ContainerBuilder(new ParameterBag(array('foo' => new Reference('foo')))));
+        $dumper = new PhpDumper(new ContainerBuilder(new ParameterBag($parameters)));
         $dumper->dump();
+    }
+
+    public function provideInvalidParameters()
+    {
+        return array(
+            array(array('foo' => new Definition('stdClass'))),
+            array(array('foo' => new Expression('service("foo").foo() ~ (container.hasParameter("foo") ? parameter("foo") : "default")'))),
+            array(array('foo' => new Reference('foo'))),
+            array(array('foo' => new Variable('foo'))),
+        );
     }
 
     public function testAddParameters()
@@ -124,6 +137,16 @@ class PhpDumperTest extends \PHPUnit_Framework_TestCase
         }
     }
 
+    /**
+     * @group legacy
+     */
+    public function testLegacySynchronizedServices()
+    {
+        $container = include self::$fixturesPath.'/containers/container20.php';
+        $dumper = new PhpDumper($container);
+        $this->assertEquals(str_replace('%path%', str_replace('\\', '\\\\', self::$fixturesPath.DIRECTORY_SEPARATOR.'includes'.DIRECTORY_SEPARATOR), file_get_contents(self::$fixturesPath.'/php/services20.php')), $dumper->dump(), '->dump() dumps services');
+    }
+
     public function testServicesWithAnonymousFactories()
     {
         $container = include self::$fixturesPath.'/containers/container19.php';
@@ -142,6 +165,31 @@ class PhpDumperTest extends \PHPUnit_Framework_TestCase
         $container->register('bar$', 'FooClass');
         $dumper = new PhpDumper($container);
         $dumper->dump();
+    }
+
+    /**
+     * @dataProvider provideInvalidFactories
+     * @expectedException \Symfony\Component\DependencyInjection\Exception\RuntimeException
+     * @expectedExceptionMessage Cannot dump definition
+     */
+    public function testInvalidFactories($factory)
+    {
+        $container = new ContainerBuilder();
+        $def = new Definition('stdClass');
+        $def->setFactory($factory);
+        $container->setDefinition('bar', $def);
+        $dumper = new PhpDumper($container);
+        $dumper->dump();
+    }
+
+    public function provideInvalidFactories()
+    {
+        return array(
+            array(array('', 'method')),
+            array(array('class', '')),
+            array(array('...', 'method')),
+            array(array('class', '...')),
+        );
     }
 
     public function testAliases()
@@ -207,5 +255,16 @@ class PhpDumperTest extends \PHPUnit_Framework_TestCase
 
         $dumper = new PhpDumper($container);
         $dumper->dump();
+    }
+
+    public function testInlinedDefinitionReferencingServiceContainer()
+    {
+        $container = new ContainerBuilder();
+        $container->register('foo', 'stdClass')->addMethodCall('add', array(new Reference('service_container')))->setPublic(false);
+        $container->register('bar', 'stdClass')->addArgument(new Reference('foo'));
+        $container->compile();
+
+        $dumper = new PhpDumper($container);
+        $this->assertStringEqualsFile(self::$fixturesPath.'/php/services13.php', $dumper->dump(), '->dump() dumps inline definitions which reference service_container');
     }
 }

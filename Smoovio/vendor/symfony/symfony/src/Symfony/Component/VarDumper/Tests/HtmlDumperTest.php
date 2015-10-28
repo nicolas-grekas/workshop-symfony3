@@ -45,8 +45,17 @@ class HtmlDumperTest extends \PHPUnit_Framework_TestCase
         preg_match('/sf-dump-\d+/', $out, $dumpId);
         $dumpId = $dumpId[0];
         $res = (int) $var['res'];
-
+        $closure54 = '';
         $r = defined('HHVM_VERSION') ? '' : '<a class=sf-dump-ref>#%d</a>';
+
+        if (PHP_VERSION_ID >= 50400) {
+            $closure54 = <<<EOTXT
+
+    <span class=sf-dump-meta>class</span>: "<span class=sf-dump-str title="48 characters">Symfony\Component\VarDumper\Tests\HtmlDumperTest</span>"
+    <span class=sf-dump-meta>this</span>: <abbr title="Symfony\Component\VarDumper\Tests\HtmlDumperTest" class=sf-dump-note>HtmlDumperTest</abbr> {{$r} &#8230;}
+EOTXT;
+        }
+
         $this->assertStringMatchesFormat(
             <<<EOTXT
 <foo></foo><bar><span class=sf-dump-note>array:24</span> [<samp>
@@ -63,31 +72,27 @@ class HtmlDumperTest extends \PHPUnit_Framework_TestCase
   <span class=sf-dump-key>7</span> => b"<span class=sf-dump-str title="2 binary or non-UTF-8 characters">&#233;</span>\\x00"
   "<span class=sf-dump-key>[]</span>" => []
   "<span class=sf-dump-key>res</span>" => <span class=sf-dump-note>stream resource</span> <a class=sf-dump-ref>@{$res}</a><samp>
-    <span class=sf-dump-meta>wrapper_type</span>: "<span class=sf-dump-str title="9 characters">plainfile</span>"
+%A  <span class=sf-dump-meta>wrapper_type</span>: "<span class=sf-dump-str title="9 characters">plainfile</span>"
     <span class=sf-dump-meta>stream_type</span>: "<span class=sf-dump-str title="5 characters">STDIO</span>"
     <span class=sf-dump-meta>mode</span>: "<span class=sf-dump-str>r</span>"
     <span class=sf-dump-meta>unread_bytes</span>: <span class=sf-dump-num>0</span>
     <span class=sf-dump-meta>seekable</span>: <span class=sf-dump-const>true</span>
-    <span class=sf-dump-meta>timed_out</span>: <span class=sf-dump-const>false</span>
-    <span class=sf-dump-meta>blocked</span>: <span class=sf-dump-const>true</span>
-    <span class=sf-dump-meta>eof</span>: <span class=sf-dump-const>false</span>
-    <span class=sf-dump-meta>options</span>: []
+%A  <span class=sf-dump-meta>options</span>: []
   </samp>}
   "<span class=sf-dump-key>obj</span>" => <abbr title="Symfony\Component\VarDumper\Tests\Fixture\DumbFoo" class=sf-dump-note>DumbFoo</abbr> {<a class=sf-dump-ref href=#{$dumpId}-ref2%d title="2 occurrences">#%d</a><samp id={$dumpId}-ref2%d>
     +<span class=sf-dump-public title="Public property">foo</span>: "<span class=sf-dump-str title="3 characters">foo</span>"
     +"<span class=sf-dump-public title="Runtime added dynamic property">bar</span>": "<span class=sf-dump-str title="3 characters">bar</span>"
   </samp>}
-  "<span class=sf-dump-key>closure</span>" => <span class=sf-dump-note>Closure</span> {{$r}<samp>
-    <span class=sf-dump-meta>reflection</span>: """
-      <span class=sf-dump-str title="%d characters">Closure [ &lt;user%S&gt; %s Symfony\Component\VarDumper\Tests\Fixture\{closure} ] {</span>\\n
-      <span class=sf-dump-str title="%d characters">  @@ {$var['file']} {$var['line']} - {$var['line']}</span>\\n
-      \\n
-      <span class=sf-dump-str title="%d characters">  - Parameters [2] {</span>\\n
-      <span class=sf-dump-str title="%d characters">    Parameter #0 [ &lt;required&gt; \$a ]</span>\\n
-      <span class=sf-dump-str title="%d characters">    Parameter #1 [ &lt;optional&gt; PDO or NULL &amp;\$b = NULL ]</span>\\n
-      <span class=sf-dump-str title="%d characters">  }</span>\\n
-      <span class=sf-dump-str title="%d characters">}</span>\\n
-      """
+  "<span class=sf-dump-key>closure</span>" => <span class=sf-dump-note>Closure</span> {{$r}<samp>{$closure54}
+    <span class=sf-dump-meta>parameters</span>: <span class=sf-dump-note>array:2</span> [<samp>
+      "<span class=sf-dump-key>\$a</span>" => []
+      "<span class=sf-dump-key>&amp;\$b</span>" => <span class=sf-dump-note>array:2</span> [<samp>
+        "<span class=sf-dump-key>typeHint</span>" => "<span class=sf-dump-str title="3 characters">PDO</span>"
+        "<span class=sf-dump-key>default</span>" => <span class=sf-dump-const>null</span>
+      </samp>]
+    </samp>]
+    <span class=sf-dump-meta>file</span>: "<span class=sf-dump-str title="%d characters">{$var['file']}</span>"
+    <span class=sf-dump-meta>line</span>: "<span class=sf-dump-str title="%d characters">{$var['line']} to {$var['line']}</span>"
   </samp>}
   "<span class=sf-dump-key>line</span>" => <span class=sf-dump-num>{$var['line']}</span>
   "<span class=sf-dump-key>nobj</span>" => <span class=sf-dump-note>array:1</span> [<samp>
@@ -112,11 +117,11 @@ EOTXT
         );
     }
 
+    /**
+     * @requires extension mbstring
+     */
     public function testCharset()
     {
-        if (!extension_loaded('mbstring')) {
-            $this->markTestSkipped('This test requires mbstring.');
-        }
         $var = mb_convert_encoding('Словарь', 'CP1251', 'UTF-8');
 
         $dumper = new HtmlDumper('php://output', 'CP1251');
@@ -127,8 +132,7 @@ EOTXT
         $data = $cloner->cloneVar($var);
         $out = fopen('php://memory', 'r+b');
         $dumper->dump($data, $out);
-        rewind($out);
-        $out = stream_get_contents($out);
+        $out = stream_get_contents($out, -1, 0);
 
         $this->assertStringMatchesFormat(
             <<<EOTXT
@@ -137,7 +141,32 @@ EOTXT
 
 EOTXT
             ,
+            $out
+        );
+    }
 
+    public function testAppend()
+    {
+        $out = fopen('php://memory', 'r+b');
+
+        $dumper = new HtmlDumper();
+        $dumper->setDumpHeader('<foo></foo>');
+        $dumper->setDumpBoundaries('<bar>', '</bar>');
+        $cloner = new VarCloner();
+
+        $dumper->dump($cloner->cloneVar(123), $out);
+        $dumper->dump($cloner->cloneVar(456), $out);
+
+        $out = stream_get_contents($out, -1, 0);
+
+        $this->assertSame(<<<'EOTXT'
+<foo></foo><bar><span class=sf-dump-num>123</span>
+</bar>
+<bar><span class=sf-dump-num>456</span>
+</bar>
+
+EOTXT
+            ,
             $out
         );
     }

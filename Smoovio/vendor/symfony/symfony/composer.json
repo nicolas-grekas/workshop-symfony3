@@ -16,12 +16,16 @@
         }
     ],
     "require": {
-        "php": ">=5.3.3",
-        "doctrine/common": "~2.3",
-        "twig/twig": "~1.12,>=1.12.3",
+        "php": ">=5.3.9",
+        "doctrine/common": "~2.4",
+        "paragonie/random_compat": "~1.0",
+        "symfony/polyfill-apcu": "~1.1",
+        "symfony/polyfill-mbstring": "~1.1",
+        "twig/twig": "~1.27|~2.0",
         "psr/log": "~1.0"
     },
     "replace": {
+        "symfony/asset": "self.version",
         "symfony/browser-kit": "self.version",
         "symfony/class-loader": "self.version",
         "symfony/config": "self.version",
@@ -45,7 +49,6 @@
         "symfony/monolog-bridge": "self.version",
         "symfony/options-resolver": "self.version",
         "symfony/process": "self.version",
-        "symfony/propel1-bridge": "self.version",
         "symfony/property-access": "self.version",
         "symfony/proxy-manager-bridge": "self.version",
         "symfony/routing": "self.version",
@@ -68,29 +71,39 @@
         "symfony/yaml": "self.version"
     },
     "require-dev": {
-        "symfony/phpunit-bridge": "~2.7",
         "doctrine/data-fixtures": "1.0.*",
-        "doctrine/dbal": "~2.2",
-        "doctrine/orm": "~2.2,>=2.2.3",
+        "doctrine/dbal": "~2.4",
+        "doctrine/orm": "~2.4,>=2.4.5",
         "doctrine/doctrine-bundle": "~1.2",
         "monolog/monolog": "~1.11",
-        "propel/propel1": "~1.6",
         "ircmaxell/password-compat": "~1.0",
-        "ocramius/proxy-manager": "~0.4|~1.0",
-        "egulias/email-validator": "~1.2"
+        "ocramius/proxy-manager": "~0.4|~1.0|~2.0",
+        "symfony/phpunit-bridge": "~3.2",
+        "egulias/email-validator": "~1.2,>=1.2.1"
     },
     "autoload": {
-        "psr-0": { "Symfony\\": "src/" },
+        "psr-4": {
+            "Symfony\\Bridge\\Doctrine\\": "src/Symfony/Bridge/Doctrine/",
+            "Symfony\\Bridge\\Monolog\\": "src/Symfony/Bridge/Monolog/",
+            "Symfony\\Bridge\\ProxyManager\\": "src/Symfony/Bridge/ProxyManager/",
+            "Symfony\\Bridge\\Swiftmailer\\": "src/Symfony/Bridge/Swiftmailer/",
+            "Symfony\\Bridge\\Twig\\": "src/Symfony/Bridge/Twig/",
+            "Symfony\\Bundle\\": "src/Symfony/Bundle/",
+            "Symfony\\Component\\": "src/Symfony/Component/"
+        },
         "classmap": [
             "src/Symfony/Component/HttpFoundation/Resources/stubs",
             "src/Symfony/Component/Intl/Resources/stubs"
         ],
-        "files": [ "src/Symfony/Component/Intl/Resources/stubs/functions.php" ]
+        "files": [ "src/Symfony/Component/Intl/Resources/stubs/functions.php" ],
+        "exclude-from-classmap": [
+            "**/Tests/"
+        ]
     },
     "minimum-stability": "dev",
     "extra": {
         "branch-alias": {
-            "dev-master": "2.6-dev"
+            "dev-master": "2.7-dev"
         }
     }
 }

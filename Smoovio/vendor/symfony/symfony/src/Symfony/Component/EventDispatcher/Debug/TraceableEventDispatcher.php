@@ -116,6 +116,10 @@ class TraceableEventDispatcher implements TraceableEventDispatcherInterface
             $event = new Event();
         }
 
+        if (null !== $this->logger && $event->isPropagationStopped()) {
+            $this->logger->debug(sprintf('The "%s" event is already stopped. No listeners have been called.', $eventName));
+        }
+
         $this->preProcess($eventName);
         $this->preDispatch($eventName, $event);
 
@@ -158,7 +162,7 @@ class TraceableEventDispatcher implements TraceableEventDispatcherInterface
             $allListeners = $this->getListeners();
         } catch (\Exception $e) {
             if (null !== $this->logger) {
-                $this->logger->info(sprintf('An exception was thrown while getting the uncalled listeners (%s)', $e->getMessage()), array('exception' => $e));
+                $this->logger->info('An exception was thrown while getting the uncalled listeners.', array('exception' => $e));
             }
 
             // unable to retrieve the uncalled listeners

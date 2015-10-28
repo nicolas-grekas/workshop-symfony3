@@ -23,16 +23,6 @@ use Symfony\Component\Validator\Mapping\ClassMetadata;
 use Symfony\Component\Validator\Mapping\Loader\AnnotationLoader;
 use Symfony\Component\Validator\Tests\Fixtures\ConstraintA;
 
-require_once __DIR__.'/../../../Constraints/All.php';
-require_once __DIR__.'/../../../Constraints/Callback.php';
-require_once __DIR__.'/../../../Constraints/Choice.php';
-require_once __DIR__.'/../../../Constraints/Collection.php';
-require_once __DIR__.'/../../../Constraints/GroupSequence.php';
-require_once __DIR__.'/../../../Constraints/GroupSequenceProvider.php';
-require_once __DIR__.'/../../../Constraints/NotNull.php';
-require_once __DIR__.'/../../../Constraints/Range.php';
-require_once __DIR__.'/../../Fixtures/ConstraintA.php';
-
 class AnnotationLoaderTest extends \PHPUnit_Framework_TestCase
 {
     public function testLoadClassMetadataReturnsTrueIfSuccessful()
@@ -63,7 +53,7 @@ class AnnotationLoaderTest extends \PHPUnit_Framework_TestCase
         $expected->setGroupSequence(array('Foo', 'Entity'));
         $expected->addConstraint(new ConstraintA());
         $expected->addConstraint(new Callback(array('Symfony\Component\Validator\Tests\Fixtures\CallbackClass', 'callback')));
-        $expected->addConstraint(new Callback('validateMe'));
+        $expected->addConstraint(new Callback(array('callback' => 'validateMe', 'payload' => 'foo')));
         $expected->addConstraint(new Callback('validateMeStatic'));
         $expected->addPropertyConstraint('firstName', new NotNull());
         $expected->addPropertyConstraint('firstName', new Range(array('min' => 3)));
@@ -104,6 +94,7 @@ class AnnotationLoaderTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals($expected_parent, $parent_metadata);
     }
+
     /**
      * Test MetaData merge with parent annotation.
      */
@@ -132,7 +123,7 @@ class AnnotationLoaderTest extends \PHPUnit_Framework_TestCase
         $expected->setGroupSequence(array('Foo', 'Entity'));
         $expected->addConstraint(new ConstraintA());
         $expected->addConstraint(new Callback(array('Symfony\Component\Validator\Tests\Fixtures\CallbackClass', 'callback')));
-        $expected->addConstraint(new Callback('validateMe'));
+        $expected->addConstraint(new Callback(array('callback' => 'validateMe', 'payload' => 'foo')));
         $expected->addConstraint(new Callback('validateMeStatic'));
         $expected->addPropertyConstraint('firstName', new NotNull());
         $expected->addPropertyConstraint('firstName', new Range(array('min' => 3)));

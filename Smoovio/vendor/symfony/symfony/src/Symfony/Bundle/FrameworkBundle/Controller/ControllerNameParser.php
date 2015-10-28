@@ -119,7 +119,7 @@ class ControllerNameParser
     }
 
     /**
-     * Attempts to find a bundle that is *similar* to the given bundle name
+     * Attempts to find a bundle that is *similar* to the given bundle name.
      *
      * @param string $nonExistentBundleName
      *
@@ -142,6 +142,7 @@ class ControllerNameParser
             $lev = levenshtein($nonExistentBundleName, $bundleName);
             if ($lev <= strlen($nonExistentBundleName) / 3 && ($alternative === null || $lev < $shortest)) {
                 $alternative = $bundleName;
+                $shortest = $lev;
             }
         }
 

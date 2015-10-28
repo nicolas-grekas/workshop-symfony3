@@ -34,7 +34,7 @@ namespace Symfony\Component\Validator;
  *
  * @author Bernhard Schussek <bschussek@gmail.com>
  *
- * @deprecated Deprecated since version 2.5, to be removed in Symfony 3.0.
+ * @deprecated since version 2.5, to be removed in 3.0.
  */
 interface ValidationVisitorInterface
 {
@@ -56,16 +56,14 @@ interface ValidationVisitorInterface
      * does not find metadata for the given value, it will fail with an
      * exception.
      *
-     * @param mixed  $value        The value to validate.
-     * @param string $group        The validation group to validate.
-     * @param string $propertyPath The current property path in the validation graph.
-     * @param bool   $traverse     Whether to traverse the value if it is traversable.
-     * @param bool   $deep         Whether to traverse nested traversable values recursively.
+     * @param mixed  $value        The value to validate
+     * @param string $group        The validation group to validate
+     * @param string $propertyPath The current property path in the validation graph
+     * @param bool   $traverse     Whether to traverse the value if it is traversable
+     * @param bool   $deep         Whether to traverse nested traversable values recursively
      *
      * @throws Exception\NoSuchMetadataException If no metadata can be found for
      *                                           the given value.
-     *
-     * @deprecated Deprecated since version 2.5, to be removed in Symfony 3.0.
      */
     public function validate($value, $group, $propertyPath, $traverse = false, $deep = false);
 
@@ -75,12 +73,10 @@ interface ValidationVisitorInterface
      * This method implements the Visitor design pattern. See also
      * {@link ValidationVisitorInterface}.
      *
-     * @param MetadataInterface $metadata     The metadata holding the constraints.
-     * @param mixed             $value        The value to validate.
-     * @param string            $group        The validation group to validate.
-     * @param string            $propertyPath The current property path in the validation graph.
-     *
-     * @deprecated Deprecated since version 2.5, to be removed in Symfony 3.0.
+     * @param MetadataInterface $metadata     The metadata holding the constraints
+     * @param mixed             $value        The value to validate
+     * @param string            $group        The validation group to validate
+     * @param string            $propertyPath The current property path in the validation graph
      */
     public function visit(MetadataInterface $metadata, $value, $group, $propertyPath);
 }

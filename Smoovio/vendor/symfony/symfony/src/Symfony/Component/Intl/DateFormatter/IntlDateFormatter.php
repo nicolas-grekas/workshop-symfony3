@@ -129,27 +129,27 @@ class IntlDateFormatter
     /**
      * Constructor.
      *
-     * @param string $locale   The locale code. The only currently supported locale is "en".
+     * @param string $locale   The locale code. The only currently supported locale is "en" (or null using the default locale, i.e. "en")
      * @param int    $datetype Type of date formatting, one of the format type constants
      * @param int    $timetype Type of time formatting, one of the format type constants
-     * @param string $timezone Timezone identifier
+     * @param mixed  $timezone Timezone identifier
      * @param int    $calendar Calendar to use for formatting or parsing. The only currently
-     *                         supported value is IntlDateFormatter::GREGORIAN.
+     *                         supported value is IntlDateFormatter::GREGORIAN (or null using the default calendar, i.e. "GREGORIAN")
      * @param string $pattern  Optional pattern to use when formatting
      *
      * @see http://www.php.net/manual/en/intldateformatter.create.php
      * @see http://userguide.icu-project.org/formatparse/datetime
      *
-     * @throws MethodArgumentValueNotImplementedException When $locale different than "en" is passed
+     * @throws MethodArgumentValueNotImplementedException When $locale different than "en" or null is passed
      * @throws MethodArgumentValueNotImplementedException When $calendar different than GREGORIAN is passed
      */
     public function __construct($locale, $datetype, $timetype, $timezone = null, $calendar = self::GREGORIAN, $pattern = null)
     {
-        if ('en' !== $locale) {
+        if ('en' !== $locale && null !== $locale) {
             throw new MethodArgumentValueNotImplementedException(__METHOD__, 'locale', $locale, 'Only the locale "en" is supported');
         }
 
-        if (self::GREGORIAN !== $calendar) {
+        if (self::GREGORIAN !== $calendar && null !== $calendar) {
             throw new MethodArgumentValueNotImplementedException(__METHOD__, 'calendar', $calendar, 'Only the GREGORIAN calendar is supported');
         }
 
@@ -157,17 +157,17 @@ class IntlDateFormatter
         $this->timetype = $timetype;
 
         $this->setPattern($pattern);
-        $this->setTimeZoneId($timezone);
+        $this->setTimeZone($timezone);
     }
 
     /**
      * Static constructor.
      *
-     * @param string $locale   The locale code. The only currently supported locale is "en".
+     * @param string $locale   The locale code. The only currently supported locale is "en" (or null using the default locale, i.e. "en")
      * @param int    $datetype Type of date formatting, one of the format type constants
      * @param int    $timetype Type of time formatting, one of the format type constants
      * @param string $timezone Timezone identifier
-     * @param int    $calendar Calendar to use for formatting or parsing; default is Gregorian.
+     * @param int    $calendar Calendar to use for formatting or parsing; default is Gregorian
      *                         One of the calendar constants.
      * @param string $pattern  Optional pattern to use when formatting
      *
@@ -176,7 +176,7 @@ class IntlDateFormatter
      * @see http://www.php.net/manual/en/intldateformatter.create.php
      * @see http://userguide.icu-project.org/formatparse/datetime
      *
-     * @throws MethodArgumentValueNotImplementedException When $locale different than "en" is passed
+     * @throws MethodArgumentValueNotImplementedException When $locale different than "en" or null is passed
      * @throws MethodArgumentValueNotImplementedException When $calendar different than GREGORIAN is passed
      */
     public static function create($locale, $datetype, $timetype, $timezone = null, $calendar = self::GREGORIAN, $pattern = null)
@@ -190,7 +190,7 @@ class IntlDateFormatter
      * @param int|\DateTime $timestamp The timestamp to format. \DateTime objects
      *                                 are supported as of PHP 5.3.4.
      *
-     * @return string|bool The formatted value or false if formatting failed.
+     * @return string|bool The formatted value or false if formatting failed
      *
      * @see http://www.php.net/manual/en/intldateformatter.format.php
      *
@@ -200,20 +200,16 @@ class IntlDateFormatter
     {
         // intl allows timestamps to be passed as arrays - we don't
         if (is_array($timestamp)) {
-            $message = PHP_VERSION_ID >= 50304 ?
-                'Only integer Unix timestamps and DateTime objects are supported' :
-                'Only integer Unix timestamps are supported';
+            $message = 'Only integer Unix timestamps and DateTime objects are supported';
 
             throw new MethodArgumentValueNotImplementedException(__METHOD__, 'timestamp', $timestamp, $message);
         }
 
         // behave like the intl extension
         $argumentError = null;
-        if (PHP_VERSION_ID < 50304 && !is_int($timestamp)) {
-            $argumentError = 'datefmt_format: takes either an array  or an integer timestamp value ';
-        } elseif (PHP_VERSION_ID >= 50304 && !is_int($timestamp) && !$timestamp instanceof \DateTime) {
+        if (!is_int($timestamp) && !$timestamp instanceof \DateTime) {
             $argumentError = 'datefmt_format: takes either an array or an integer timestamp value or a DateTime object';
-            if (PHP_VERSION_ID >= 50500 && !is_int($timestamp)) {
+            if (PHP_VERSION_ID >= 50500 || (extension_loaded('intl') && method_exists('IntlDateFormatter', 'setTimeZone'))) {
                 $argumentError = sprintf('datefmt_format: string \'%s\' is not numeric, which would be required for it to be a valid date', $timestamp);
             }
         }
@@ -226,8 +222,7 @@ class IntlDateFormatter
             return false;
         }
 
-        // As of PHP 5.3.4, IntlDateFormatter::format() accepts DateTime instances
-        if (PHP_VERSION_ID >= 50304 && $timestamp instanceof \DateTime) {
+        if ($timestamp instanceof \DateTime) {
             $timestamp = $timestamp->getTimestamp();
         }
 
@@ -376,7 +371,7 @@ class IntlDateFormatter
         }
 
         // In PHP 5.5 default timezone depends on `date_default_timezone_get()` method
-        if (PHP_VERSION_ID >= 50500) {
+        if (PHP_VERSION_ID >= 50500 || (extension_loaded('intl') && method_exists('IntlDateFormatter', 'setTimeZone'))) {
             return date_default_timezone_get();
         }
     }
@@ -398,7 +393,7 @@ class IntlDateFormatter
     /**
      * Returns whether the formatter is lenient.
      *
-     * @return bool Currently always returns false.
+     * @return bool Currently always returns false
      *
      * @see http://www.php.net/manual/en/intldateformatter.islenient.php
      *
@@ -413,7 +408,7 @@ class IntlDateFormatter
      * Not supported. Parse string to a field-based time value.
      *
      * @param string $value    String to convert to a time value
-     * @param int    $position Position at which to start the parsing in $value (zero-based).
+     * @param int    $position Position at which to start the parsing in $value (zero-based)
      *                         If no error occurs before $value is consumed, $parse_pos will
      *                         contain -1 otherwise it will contain the position at which parsing
      *                         ended. If $parse_pos > strlen($value), the parse fails immediately.
@@ -433,7 +428,7 @@ class IntlDateFormatter
      * Parse string to a timestamp value.
      *
      * @param string $value    String to convert to a time value
-     * @param int    $position Not supported. Position at which to start the parsing in $value (zero-based).
+     * @param int    $position Not supported. Position at which to start the parsing in $value (zero-based)
      *                         If no error occurs before $value is consumed, $parse_pos will
      *                         contain -1 otherwise it will contain the position at which parsing
      *                         ended. If $parse_pos > strlen($value), the parse fails immediately.
@@ -466,7 +461,7 @@ class IntlDateFormatter
     /**
      * Not supported. Set the formatter's calendar.
      *
-     * @param string $calendar The calendar to use. Default is IntlDateFormatter::GREGORIAN.
+     * @param string $calendar The calendar to use. Default is IntlDateFormatter::GREGORIAN
      *
      * @return bool true on success or false on failure
      *
@@ -529,7 +524,7 @@ class IntlDateFormatter
     /**
      * Set the formatter's timezone identifier.
      *
-     * @param string $timeZoneId The time zone ID string of the time zone to use.
+     * @param string $timeZoneId The time zone ID string of the time zone to use
      *                           If NULL or the empty string, the default time zone for the
      *                           runtime is used.
      *
@@ -541,7 +536,7 @@ class IntlDateFormatter
     {
         if (null === $timeZoneId) {
             // In PHP 5.5 if $timeZoneId is null it fallbacks to `date_default_timezone_get()` method
-            if (PHP_VERSION_ID >= 50500) {
+            if (PHP_VERSION_ID >= 50500 || (extension_loaded('intl') && method_exists('IntlDateFormatter', 'setTimeZone'))) {
                 $timeZoneId = date_default_timezone_get();
             } else {
                 // TODO: changes were made to ext/intl in PHP 5.4.4 release that need to be investigated since it will
@@ -568,8 +563,16 @@ class IntlDateFormatter
 
         try {
             $this->dateTimeZone = new \DateTimeZone($timeZoneId);
+            if ('GMT' !== $timeZoneId && $this->dateTimeZone->getName() !== $timeZoneId) {
+                $timeZone = $this->getTimeZoneId();
+            }
         } catch (\Exception $e) {
-            $this->dateTimeZone = new \DateTimeZone('UTC');
+            if (PHP_VERSION_ID >= 50500 || (extension_loaded('intl') && method_exists('IntlDateFormatter', 'setTimeZone'))) {
+                $timeZoneId = $timeZone = $this->getTimeZoneId();
+            } else {
+                $timeZoneId = 'UTC';
+            }
+            $this->dateTimeZone = new \DateTimeZone($timeZoneId);
         }
 
         $this->timeZoneId = $timeZone;
@@ -588,6 +591,19 @@ class IntlDateFormatter
      */
     public function setTimeZone($timeZone)
     {
+        if ($timeZone instanceof \IntlTimeZone) {
+            $timeZone = $timeZone->getID();
+        }
+
+        if ($timeZone instanceof \DateTimeZone) {
+            $timeZone = $timeZone->getName();
+
+            // DateTimeZone returns the GMT offset timezones without the leading GMT, while our parsing requires it.
+            if (!empty($timeZone) && ('+' === $timeZone[0] || '-' === $timeZone[0])) {
+                $timeZone = 'GMT'.$timeZone;
+            }
+        }
+
         return $this->setTimeZoneId($timeZone);
     }
 
@@ -622,8 +638,7 @@ class IntlDateFormatter
         if (self::NONE !== $this->timetype) {
             $patternParts[] = $this->defaultTimeFormats[$this->timetype];
         }
-        $pattern = implode(' ', $patternParts);
 
-        return $pattern;
+        return implode(', ', $patternParts);
     }
 }

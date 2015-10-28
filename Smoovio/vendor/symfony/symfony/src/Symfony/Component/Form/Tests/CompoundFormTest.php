@@ -807,6 +807,9 @@ class CompoundFormTest extends AbstractFormTest
         $this->assertEquals(array('extra' => 'data'), $form->getExtraData());
     }
 
+    /**
+     * @group legacy
+     */
     public function testGetErrorsAsStringDeep()
     {
         $parent = $this->getBuilder()
@@ -826,6 +829,9 @@ class CompoundFormTest extends AbstractFormTest
         );
     }
 
+    /**
+     * @group legacy
+     */
     public function testGetErrorsAsStringDeepWithIndentation()
     {
         $parent = $this->getBuilder()

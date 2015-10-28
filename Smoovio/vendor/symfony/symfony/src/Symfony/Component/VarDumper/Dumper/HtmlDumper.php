@@ -31,7 +31,7 @@ class HtmlDumper extends CliDumper
     protected $headerIsDumped = false;
     protected $lastDepth = -1;
     protected $styles = array(
-        'default' => 'background-color:#18171B; color:#FF8400; line-height:1.2em; font:12px Menlo, Monaco, Consolas, monospace; word-wrap: break-word; white-space: pre-wrap; position:relative; z-index:100000',
+        'default' => 'background-color:#18171B; color:#FF8400; line-height:1.2em; font:12px Menlo, Monaco, Consolas, monospace; word-wrap: break-word; white-space: pre-wrap; position:relative; z-index:99999; word-break: normal',
         'num' => 'font-weight:bold; color:#1299DA',
         'const' => 'font-weight:bold',
         'str' => 'font-weight:bold; color:#56DB3A',
@@ -50,20 +50,8 @@ class HtmlDumper extends CliDumper
      */
     public function __construct($output = null, $charset = null)
     {
-        parent::__construct($output, $charset);
+        AbstractDumper::__construct($output, $charset);
         $this->dumpId = 'sf-dump-'.mt_rand();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function setOutput($output)
-    {
-        if ($output !== $prev = parent::setOutput($output)) {
-            $this->headerIsDumped = false;
-        }
-
-        return $prev;
     }
 
     /**
@@ -78,7 +66,7 @@ class HtmlDumper extends CliDumper
     /**
      * Sets an HTML header that will be dumped once in the output stream.
      *
-     * @param string $header An HTML string.
+     * @param string $header An HTML string
      */
     public function setDumpHeader($header)
     {
@@ -88,8 +76,8 @@ class HtmlDumper extends CliDumper
     /**
      * Sets an HTML prefix and suffix that will encapse every single dump.
      *
-     * @param string $prefix The prepended HTML string.
-     * @param string $suffix The appended HTML string.
+     * @param string $prefix The prepended HTML string
+     * @param string $suffix The appended HTML string
      */
     public function setDumpBoundaries($prefix, $suffix)
     {
@@ -111,7 +99,7 @@ class HtmlDumper extends CliDumper
      */
     protected function getDumpHeader()
     {
-        $this->headerIsDumped = true;
+        $this->headerIsDumped = null !== $this->outputStream ? $this->outputStream : $this->lineDumper;
 
         if (null !== $this->dumpHeader) {
             return $this->dumpHeader;
@@ -123,21 +111,51 @@ Sfdump = window.Sfdump || (function (doc) {
 
 var refStyle = doc.createElement('style'),
     rxEsc = /([.*+?^${}()|\[\]\/\\])/g,
-    idRx = /\bsf-dump-\d+-ref[012]\w+\b/;
+    idRx = /\bsf-dump-\d+-ref[012]\w+\b/,
+    keyHint = 0 <= navigator.platform.toUpperCase().indexOf('MAC') ? 'Cmd' : 'Ctrl',
+    addEventListener = function (e, n, cb) {
+        e.addEventListener(n, cb, false);
+    };
 
-doc.documentElement.firstChild.appendChild(refStyle);
+(doc.documentElement.firstElementChild || doc.documentElement.children[0]).appendChild(refStyle);
 
-function toggle(a) {
-    var s = a.nextSibling || {};
+if (!doc.addEventListener) {
+    addEventListener = function (element, eventName, callback) {
+        element.attachEvent('on' + eventName, function (e) {
+            e.preventDefault = function () {e.returnValue = false;};
+            e.target = e.srcElement;
+            callback(e);
+        });
+    };
+}
 
-    if ('sf-dump-compact' == s.className) {
-        a.lastChild.innerHTML = '▼';
-        s.className = 'sf-dump-expanded';
-    } else if ('sf-dump-expanded' == s.className) {
-        a.lastChild.innerHTML = '▶';
-        s.className = 'sf-dump-compact';
+function toggle(a, recursive) {
+    var s = a.nextSibling || {}, oldClass = s.className, arrow, newClass;
+
+    if ('sf-dump-compact' == oldClass) {
+        arrow = '▼';
+        newClass = 'sf-dump-expanded';
+    } else if ('sf-dump-expanded' == oldClass) {
+        arrow = '▶';
+        newClass = 'sf-dump-compact';
     } else {
         return false;
+    }
+
+    a.lastChild.innerHTML = arrow;
+    s.className = newClass;
+
+    if (recursive) {
+        try {
+            a = s.querySelectorAll('.'+oldClass);
+            for (s = 0; s < a.length; ++s) {
+                if (a[s].className !== newClass) {
+                    a[s].className = newClass;
+                    a[s].previousSibling.lastChild.innerHTML = arrow;
+                }
+            }
+        } catch (e) {
+        }
     }
 
     return true;
@@ -147,7 +165,7 @@ return function (root) {
     root = doc.getElementById(root);
 
     function a(e, f) {
-        root.addEventListener(e, function (e) {
+        addEventListener(root, e, function (e) {
             if ('A' == e.target.tagName) {
                 f(e.target, e);
             } else if ('A' == e.target.parentNode.tagName) {
@@ -155,20 +173,26 @@ return function (root) {
             }
         });
     };
-    root.addEventListener('mouseover', function (e) {
+    function isCtrlKey(e) {
+        return e.ctrlKey || e.metaKey;
+    }
+    addEventListener(root, 'mouseover', function (e) {
         if ('' != refStyle.innerHTML) {
             refStyle.innerHTML = '';
         }
     });
     a('mouseover', function (a) {
         if (a = idRx.exec(a.className)) {
-            refStyle.innerHTML = 'pre.sf-dump .'+a[0]+'{background-color: #B729D9; color: #FFF !important; border-radius: 2px}';
+            try {
+                refStyle.innerHTML = 'pre.sf-dump .'+a[0]+'{background-color: #B729D9; color: #FFF !important; border-radius: 2px}';
+            } catch (e) {
+            }
         }
     });
     a('click', function (a, e) {
         if (/\bsf-dump-toggle\b/.test(a.className)) {
             e.preventDefault();
-            if (!toggle(a)) {
+            if (!toggle(a, isCtrlKey(e))) {
                 var r = doc.getElementById(a.getAttribute('href').substr(1)),
                     s = r.previousSibling,
                     f = r.parentNode,
@@ -182,8 +206,18 @@ return function (root) {
                     r.innerHTML = r.innerHTML.replace(new RegExp('^'+f[0].replace(rxEsc, '\\$1'), 'mg'), t[0]);
                 }
                 if ('sf-dump-compact' == r.className) {
-                    toggle(s);
+                    toggle(s, isCtrlKey(e));
                 }
+            }
+
+            if (doc.getSelection) {
+                try {
+                    doc.getSelection().removeAllRanges();
+                } catch (e) {
+                    doc.getSelection().empty();
+                }
+            } else {
+                doc.selection.empty();
             }
         }
     });
@@ -218,6 +252,7 @@ return function (root) {
             } else {
                 a.innerHTML += ' ';
             }
+            a.title = (a.title ? a.title+'\n[' : '[')+keyHint+'+click] Expand all children';
             a.innerHTML += '<span>▼</span>';
             a.className += ' sf-dump-toggle';
             if ('sf-dump' != elt.parentNode.className) {
@@ -253,8 +288,7 @@ return function (root) {
 };
 
 })(document);
-</script>
-<style>
+</script><style>
 pre.sf-dump {
     display: block;
     white-space: pre;
@@ -327,7 +361,7 @@ EOHTML;
             return '';
         }
 
-        $v = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+        $v = esc($value);
 
         if ('ref' === $style) {
             if (empty($attr['count'])) {
@@ -338,18 +372,18 @@ EOHTML;
             return sprintf('<a class=sf-dump-ref href=#%s-ref%s title="%d occurrences">%s</a>', $this->dumpId, $r, 1 + $attr['count'], $v);
         }
 
-        if ('const' === $style && array_key_exists('value', $attr)) {
-            $style .= sprintf(' title="%s"', htmlspecialchars(json_encode($attr['value']), ENT_QUOTES, 'UTF-8'));
+        if ('const' === $style && isset($attr['value'])) {
+            $style .= sprintf(' title="%s"', esc(is_scalar($attr['value']) ? $attr['value'] : json_encode($attr['value'])));
         } elseif ('public' === $style) {
             $style .= sprintf(' title="%s"', empty($attr['dynamic']) ? 'Public property' : 'Runtime added dynamic property');
         } elseif ('str' === $style && 1 < $attr['length']) {
-            $style .= sprintf(' title="%s%s characters"', $attr['length'], $attr['binary'] ? ' binary or non-UTF-8' : '');
+            $style .= sprintf(' title="%d%s characters"', $attr['length'], $attr['binary'] ? ' binary or non-UTF-8' : '');
         } elseif ('note' === $style && false !== $c = strrpos($v, '\\')) {
             return sprintf('<abbr title="%s" class=sf-dump-%s>%s</abbr>', $v, $style, substr($v, $c + 1));
         } elseif ('protected' === $style) {
             $style .= ' title="Protected property"';
         } elseif ('private' === $style) {
-            $style .= sprintf(' title="Private property defined in class:&#10;`%s`"', $attr['class']);
+            $style .= sprintf(' title="Private property defined in class:&#10;`%s`"', esc($attr['class']));
         }
 
         $map = static::$controlCharsMap;
@@ -386,7 +420,7 @@ EOHTML;
         if (-1 === $this->lastDepth) {
             $this->line = sprintf($this->dumpPrefix, $this->dumpId, $this->indentPad).$this->line;
         }
-        if (!$this->headerIsDumped) {
+        if ($this->headerIsDumped !== (null !== $this->outputStream ? $this->outputStream : $this->lineDumper)) {
             $this->line = $this->getDumpHeader().$this->line;
         }
 
@@ -425,4 +459,9 @@ EOHTML;
         }
         AbstractDumper::dumpLine($depth);
     }
+}
+
+function esc($str)
+{
+    return htmlspecialchars($str, ENT_QUOTES, 'UTF-8');
 }

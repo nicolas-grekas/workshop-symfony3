@@ -65,7 +65,7 @@ class NativeSessionStorage implements SessionStorageInterface
      * ("auto_start", is not supported as it tells PHP to start a session before
      * PHP starts to execute user-land code. Setting during runtime has no effect).
      *
-     * cache_limiter, "nocache" (use "0" to prevent headers from being sent entirely).
+     * cache_limiter, "" (use "0" to prevent headers from being sent entirely).
      * cookie_domain, ""
      * cookie_httponly, ""
      * cookie_lifetime, "0"
@@ -92,9 +92,9 @@ class NativeSessionStorage implements SessionStorageInterface
      * upload_progress.min-freq, "1"
      * url_rewriter.tags, "a=href,area=href,frame=src,form=,fieldset="
      *
-     * @param array                                                            $options Session configuration options.
+     * @param array                                                            $options Session configuration options
      * @param AbstractProxy|NativeSessionHandler|\SessionHandlerInterface|null $handler
-     * @param MetadataBag                                                      $metaBag MetadataBag.
+     * @param MetadataBag                                                      $metaBag MetadataBag
      */
     public function __construct(array $options = array(), $handler = null, MetadataBag $metaBag = null)
     {
@@ -195,6 +195,16 @@ class NativeSessionStorage implements SessionStorageInterface
      */
     public function regenerate($destroy = false, $lifetime = null)
     {
+        // Cannot regenerate the session ID for non-active sessions.
+        if (PHP_VERSION_ID >= 50400 && \PHP_SESSION_ACTIVE !== session_status()) {
+            return false;
+        }
+
+        // Check if session ID exists in PHP 5.3
+        if (PHP_VERSION_ID < 50400 && '' === session_id()) {
+            return false;
+        }
+
         if (null !== $lifetime) {
             ini_set('session.cookie_lifetime', $lifetime);
         }
@@ -250,6 +260,10 @@ class NativeSessionStorage implements SessionStorageInterface
      */
     public function registerBag(SessionBagInterface $bag)
     {
+        if ($this->started) {
+            throw new \LogicException('Cannot register a bag when the session is already started.');
+        }
+
         $this->bags[$bag->getName()] = $bag;
     }
 
@@ -309,7 +323,7 @@ class NativeSessionStorage implements SessionStorageInterface
      * For convenience we omit 'session.' from the beginning of the keys.
      * Explicitly ignores other ini keys.
      *
-     * @param array $options Session ini directives array(key => value).
+     * @param array $options Session ini directives array(key => value)
      *
      * @see http://php.net/session.configuration
      */
@@ -341,7 +355,7 @@ class NativeSessionStorage implements SessionStorageInterface
      * session.save_handler and session.save_path e.g.
      *
      *     ini_set('session.save_handler', 'files');
-     *     ini_set('session.save_path', /tmp');
+     *     ini_set('session.save_path', '/tmp');
      *
      * or pass in a NativeSessionHandler instance which configures session.save_handler in the
      * constructor, for a template see NativeFileSessionHandler or use handlers in

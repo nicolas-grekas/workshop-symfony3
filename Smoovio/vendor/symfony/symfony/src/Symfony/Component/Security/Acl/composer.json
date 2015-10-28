@@ -16,11 +16,10 @@
         }
     ],
     "require": {
-        "php": ">=5.3.3",
+        "php": ">=5.3.9",
         "symfony/security-core": "~2.4"
     },
     "require-dev": {
-        "symfony/phpunit-bridge": "~2.7",
         "doctrine/common": "~2.2",
         "doctrine/dbal": "~2.2",
         "psr/log": "~1.0"
@@ -31,13 +30,15 @@
         "doctrine/dbal": "For using the built-in ACL implementation"
     },
     "autoload": {
-        "psr-0": { "Symfony\\Component\\Security\\Acl\\": "" }
+        "psr-4": { "Symfony\\Component\\Security\\Acl\\": "" },
+        "exclude-from-classmap": [
+            "/Tests/"
+        ]
     },
-    "target-dir": "Symfony/Component/Security/Acl",
     "minimum-stability": "dev",
     "extra": {
         "branch-alias": {
-            "dev-master": "2.6-dev"
+            "dev-master": "2.7-dev"
         }
     }
 }

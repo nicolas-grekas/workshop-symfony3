@@ -22,6 +22,8 @@ interface Twig_ExtensionInterface
      * This is where you can load some file that contains filter functions for instance.
      *
      * @param Twig_Environment $environment The current Twig_Environment instance
+     *
+     * @deprecated since 1.23 (to be removed in 2.0), implement Twig_Extension_InitRuntimeInterface instead
      */
     public function initRuntime(Twig_Environment $environment);
 
@@ -71,6 +73,8 @@ interface Twig_ExtensionInterface
      * Returns a list of global variables to add to the existing list.
      *
      * @return array An array of global variables
+     *
+     * @deprecated since 1.23 (to be removed in 2.0), implement Twig_Extension_GlobalsInterface instead
      */
     public function getGlobals();
 
@@ -78,6 +82,8 @@ interface Twig_ExtensionInterface
      * Returns the name of the extension.
      *
      * @return string The extension name
+     *
+     * @deprecated since 1.26 (to be removed in 2.0), not used anymore internally
      */
     public function getName();
 }

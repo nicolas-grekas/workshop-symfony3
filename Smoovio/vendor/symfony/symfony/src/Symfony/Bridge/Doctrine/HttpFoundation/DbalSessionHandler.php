@@ -13,6 +13,7 @@ namespace Symfony\Bridge\Doctrine\HttpFoundation;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Driver\DriverException;
+use Doctrine\DBAL\Driver\ServerInfoAwareConnection;
 use Doctrine\DBAL\Platforms\SQLServer2008Platform;
 
 /**
@@ -159,6 +160,14 @@ class DbalSessionHandler implements \SessionHandlerInterface
                 $mergeStmt->bindParam(':id', $sessionId, \PDO::PARAM_STR);
                 $mergeStmt->bindParam(':data', $encoded, \PDO::PARAM_STR);
                 $mergeStmt->bindValue(':time', time(), \PDO::PARAM_INT);
+
+                // Oracle has a bug that will intermittently happen if you
+                // have only 1 bind on a CLOB field for 2 different statements
+                // (INSERT and UPDATE in this case)
+                if ('oracle' == $this->con->getDatabasePlatform()->getName()) {
+                    $mergeStmt->bindParam(':data2', $encoded, \PDO::PARAM_STR);
+                }
+
                 $mergeStmt->execute();
 
                 return true;
@@ -172,7 +181,7 @@ class DbalSessionHandler implements \SessionHandlerInterface
             $updateStmt->bindValue(':time', time(), \PDO::PARAM_INT);
             $updateStmt->execute();
 
-            // When MERGE is not supported, like in Postgres, we have to use this approach that can result in
+            // When MERGE is not supported, like in Postgres < 9.5, we have to use this approach that can result in
             // duplicate key errors when the same session is written simultaneously. We can just catch such an
             // error and re-execute the update. This is similar to a serializable transaction with retry logic
             // on serialization failures but without the overhead and without possible false positives due to
@@ -216,23 +225,50 @@ class DbalSessionHandler implements \SessionHandlerInterface
     {
         $platform = $this->con->getDatabasePlatform()->getName();
 
-        switch ($platform) {
-            case 'mysql':
+        switch (true) {
+            case 'mysql' === $platform:
                 return "INSERT INTO $this->table ($this->idCol, $this->dataCol, $this->timeCol) VALUES (:id, :data, :time) ".
                     "ON DUPLICATE KEY UPDATE $this->dataCol = VALUES($this->dataCol), $this->timeCol = VALUES($this->timeCol)";
-            case 'oracle':
+            case 'oracle' === $platform:
                 // DUAL is Oracle specific dummy table
                 return "MERGE INTO $this->table USING DUAL ON ($this->idCol = :id) ".
                     "WHEN NOT MATCHED THEN INSERT ($this->idCol, $this->dataCol, $this->timeCol) VALUES (:id, :data, :time) ".
-                    "WHEN MATCHED THEN UPDATE SET $this->dataCol = :data, $this->timeCol = :time";
+                    "WHEN MATCHED THEN UPDATE SET $this->dataCol = :data2, $this->timeCol = :time";
             case $this->con->getDatabasePlatform() instanceof SQLServer2008Platform:
                 // MERGE is only available since SQL Server 2008 and must be terminated by semicolon
                 // It also requires HOLDLOCK according to http://weblogs.sqlteam.com/dang/archive/2009/01/31/UPSERT-Race-Condition-With-MERGE.aspx
                 return "MERGE INTO $this->table WITH (HOLDLOCK) USING (SELECT 1 AS dummy) AS src ON ($this->idCol = :id) ".
                     "WHEN NOT MATCHED THEN INSERT ($this->idCol, $this->dataCol, $this->timeCol) VALUES (:id, :data, :time) ".
                     "WHEN MATCHED THEN UPDATE SET $this->dataCol = :data, $this->timeCol = :time;";
-            case 'sqlite':
+            case 'sqlite' === $platform:
                 return "INSERT OR REPLACE INTO $this->table ($this->idCol, $this->dataCol, $this->timeCol) VALUES (:id, :data, :time)";
+            case 'postgresql' === $platform && version_compare($this->getServerVersion(), '9.5', '>='):
+                return "INSERT INTO $this->table ($this->idCol, $this->dataCol, $this->timeCol) VALUES (:id, :data, :time) ".
+                    "ON CONFLICT ($this->idCol) DO UPDATE SET ($this->dataCol, $this->timeCol) = (EXCLUDED.$this->dataCol, EXCLUDED.$this->timeCol)";
         }
+    }
+
+    private function getServerVersion()
+    {
+        $params = $this->con->getParams();
+
+        // Explicit platform version requested (supersedes auto-detection), so we respect it.
+        if (isset($params['serverVersion'])) {
+            return $params['serverVersion'];
+        }
+
+        $wrappedConnection = $this->con->getWrappedConnection();
+
+        if ($wrappedConnection instanceof ServerInfoAwareConnection) {
+            return $wrappedConnection->getServerVersion();
+        }
+
+        // Support DBAL 2.4 by accessing it directly when using PDO PgSQL
+        if ($wrappedConnection instanceof \PDO) {
+            return $wrappedConnection->getAttribute(\PDO::ATTR_SERVER_VERSION);
+        }
+
+        // If we cannot guess the version, the empty string will mean we won't use the code for newer versions when doing version checks.
+        return '';
     }
 }

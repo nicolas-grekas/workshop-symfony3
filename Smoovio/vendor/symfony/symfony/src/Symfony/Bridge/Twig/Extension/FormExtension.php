@@ -21,7 +21,7 @@ use Symfony\Component\Form\Extension\Core\View\ChoiceView;
  * @author Fabien Potencier <fabien@symfony.com>
  * @author Bernhard Schussek <bschussek@gmail.com>
  */
-class FormExtension extends \Twig_Extension
+class FormExtension extends \Twig_Extension implements \Twig_Extension_InitRuntimeInterface
 {
     /**
      * This property is public so that it can be accessed directly from compiled
@@ -61,7 +61,7 @@ class FormExtension extends \Twig_Extension
     public function getFunctions()
     {
         return array(
-            new \Twig_SimpleFunction('form_enctype', null, array('node_class' => 'Symfony\Bridge\Twig\Node\FormEnctypeNode', 'is_safe' => array('html'))),
+            new \Twig_SimpleFunction('form_enctype', null, array('node_class' => 'Symfony\Bridge\Twig\Node\FormEnctypeNode', 'is_safe' => array('html'), 'deprecated' => true, 'alternative' => 'form_start')),
             new \Twig_SimpleFunction('form_widget', null, array('node_class' => 'Symfony\Bridge\Twig\Node\SearchAndRenderBlockNode', 'is_safe' => array('html'))),
             new \Twig_SimpleFunction('form_errors', null, array('node_class' => 'Symfony\Bridge\Twig\Node\SearchAndRenderBlockNode', 'is_safe' => array('html'))),
             new \Twig_SimpleFunction('form_label', null, array('node_class' => 'Symfony\Bridge\Twig\Node\SearchAndRenderBlockNode', 'is_safe' => array('html'))),
@@ -97,9 +97,9 @@ class FormExtension extends \Twig_Extension
     /**
      * Renders a CSRF token.
      *
-     * @param string $intention The intention of the protected action.
+     * @param string $intention The intention of the protected action
      *
-     * @return string A CSRF token.
+     * @return string A CSRF token
      */
     public function renderCsrfToken($intention)
     {
@@ -109,9 +109,9 @@ class FormExtension extends \Twig_Extension
     /**
      * Makes a technical name human readable.
      *
-     * @param string $text The text to humanize.
+     * @param string $text The text to humanize
      *
-     * @return string The humanized text.
+     * @return string The humanized text
      */
     public function humanize($text)
     {
@@ -134,10 +134,10 @@ class FormExtension extends \Twig_Extension
      * seems to be much more efficient at executing filters than at executing
      * methods of an object.
      *
-     * @param ChoiceView   $choice        The choice to check.
-     * @param string|array $selectedValue The selected value to compare.
+     * @param ChoiceView   $choice        The choice to check
+     * @param string|array $selectedValue The selected value to compare
      *
-     * @return bool Whether the choice is selected.
+     * @return bool Whether the choice is selected
      *
      * @see ChoiceView::isSelected()
      */

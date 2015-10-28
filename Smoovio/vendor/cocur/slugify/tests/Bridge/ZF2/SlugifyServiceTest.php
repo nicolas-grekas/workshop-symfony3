@@ -1,6 +1,8 @@
 <?php
-namespace Cocur\Slugify\Bridge\ZF2;
+namespace Cocur\Slugify\Tests\Bridge\ZF2;
 
+use Cocur\Slugify\Bridge\ZF2\Module;
+use Cocur\Slugify\Bridge\ZF2\SlugifyService;
 use Zend\ServiceManager\ServiceManager;
 
 /**
@@ -16,7 +18,7 @@ class SlugifyServiceTest extends \PHPUnit_Framework_TestCase
      */
     private $slugifyService;
 
-    public function setUp()
+    protected function setUp()
     {
         $this->slugifyService = new SlugifyService();
     }
@@ -43,11 +45,11 @@ class SlugifyServiceTest extends \PHPUnit_Framework_TestCase
      */
     public function invokeWithCustomConfig()
     {
-        $sm = $this->createServiceManagerMock(array(
-            Module::CONFIG_KEY => array(
-                'reg_exp' => '/([^a-z0-9.]|-)+/'
-            )
-        ));
+        $sm = $this->createServiceManagerMock([
+            Module::CONFIG_KEY => [
+                'options' => ['regexp' => '/([^a-z0-9.]|-)+/']
+            ]
+        ]);
         $slugify = call_user_func($this->slugifyService, $sm);
         $this->assertInstanceOf('Cocur\Slugify\Slugify', $slugify);
 
@@ -57,7 +59,7 @@ class SlugifyServiceTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($expected, $slugify->slugify($actual));
     }
 
-    protected function createServiceManagerMock(array $config = array())
+    protected function createServiceManagerMock(array $config = [])
     {
         $sm = new ServiceManager();
         $sm->setService('Config', $config);

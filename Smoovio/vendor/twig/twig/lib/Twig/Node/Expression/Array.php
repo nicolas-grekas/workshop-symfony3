@@ -54,17 +54,12 @@ class Twig_Node_Expression_Array extends Twig_Node_Expression
     public function addElement(Twig_Node_Expression $value, Twig_Node_Expression $key = null)
     {
         if (null === $key) {
-            $key = new Twig_Node_Expression_Constant(++$this->index, $value->getLine());
+            $key = new Twig_Node_Expression_Constant(++$this->index, $value->getTemplateLine());
         }
 
         array_push($this->nodes, $key, $value);
     }
 
-    /**
-     * Compiles the node to PHP.
-     *
-     * @param Twig_Compiler $compiler A Twig_Compiler instance
-     */
     public function compile(Twig_Compiler $compiler)
     {
         $compiler->raw('array(');

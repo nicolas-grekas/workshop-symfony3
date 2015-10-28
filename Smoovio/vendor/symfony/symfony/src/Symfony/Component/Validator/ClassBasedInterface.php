@@ -16,7 +16,7 @@ namespace Symfony\Component\Validator;
  *
  * @author Bernhard Schussek <bschussek@gmail.com>
  *
- * @deprecated Deprecated since version 2.5, to be removed in Symfony 3.0.
+ * @deprecated since version 2.5, to be removed in 3.0.
  *             Use {@link Mapping\ClassMetadataInterface} instead.
  */
 interface ClassBasedInterface
@@ -24,7 +24,7 @@ interface ClassBasedInterface
     /**
      * Returns the name of the backing PHP class.
      *
-     * @return string The name of the backing class.
+     * @return string The name of the backing class
      */
     public function getClassName();
 }

@@ -3,7 +3,7 @@
 /*
  * This file is part of the Symfony CMF package.
  *
- * (c) 2011-2014 Symfony CMF
+ * (c) 2011-2015 Symfony CMF
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
@@ -14,10 +14,8 @@ namespace Symfony\Cmf\Component\Routing\Tests\Routing;
 use Symfony\Cmf\Component\Routing\Event\Events;
 use Symfony\Cmf\Component\Routing\Event\RouterMatchEvent;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\Routing\RouteCollection;
-
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Cmf\Component\Routing\DynamicRouter;
-
 use Symfony\Cmf\Component\Routing\Test\CmfUnitTestCase;
 
 class DynamicRouterTest extends CmfUnitTestCase
@@ -49,7 +47,7 @@ class DynamicRouterTest extends CmfUnitTestCase
     }
 
     /**
-     * rather trivial, but we want 100% coverage
+     * rather trivial, but we want 100% coverage.
      */
     public function testContext()
     {
@@ -89,7 +87,7 @@ class DynamicRouterTest extends CmfUnitTestCase
     {
         $name = 'my_route_name';
         $parameters = array('foo' => 'bar');
-        $absolute = true;
+        $absolute = UrlGeneratorInterface::ABSOLUTE_PATH;
 
         $this->generator->expects($this->once())
             ->method('generate')
@@ -136,6 +134,9 @@ class DynamicRouterTest extends CmfUnitTestCase
         $this->assertSame($this->matcher, $matcher);
     }
 
+    /**
+     * @group legacy
+     */
     public function testMatchUrl()
     {
         $routeDefaults = array('foo' => 'bar');
@@ -207,6 +208,7 @@ class DynamicRouterTest extends CmfUnitTestCase
 
     /**
      * @expectedException \Symfony\Component\Routing\Exception\ResourceNotFoundException
+     * @group legacy
      */
     public function testMatchFilter()
     {
@@ -247,6 +249,7 @@ class DynamicRouterTest extends CmfUnitTestCase
 
     /**
      * @expectedException \InvalidArgumentException
+     * @group legacy
      */
     public function testMatchUrlWithRequestMatcher()
     {
@@ -282,6 +285,9 @@ class DynamicRouterTest extends CmfUnitTestCase
         $this->assertInternalType('string', $router->getRouteDebugMessage('test'));
     }
 
+    /**
+     * @group legacy
+     */
     public function testEventHandler()
     {
         $eventDispatcher = $this->buildMock('Symfony\Component\EventDispatcher\EventDispatcherInterface');
@@ -326,5 +332,48 @@ class DynamicRouterTest extends CmfUnitTestCase
         ;
 
         $this->assertEquals($routeDefaults, $router->matchRequest($this->request));
+    }
+
+    public function testEventHandlerGenerate()
+    {
+        $eventDispatcher = $this->buildMock('Symfony\Component\EventDispatcher\EventDispatcherInterface');
+        $router = new DynamicRouter($this->context, $this->matcher, $this->generator, '', $eventDispatcher);
+
+        $oldname = 'old_route_name';
+        $newname = 'new_route_name';
+        $oldparameters = array('foo' => 'bar');
+        $newparameters = array('a' => 'b');
+        $oldReferenceType = false;
+        $newReferenceType = true;
+
+        $that = $this;
+        $eventDispatcher->expects($this->once())
+            ->method('dispatch')
+            ->with(Events::PRE_DYNAMIC_GENERATE, $this->callback(function ($event) use ($that, $oldname, $newname, $oldparameters, $newparameters, $oldReferenceType, $newReferenceType) {
+                $that->assertInstanceOf('Symfony\Cmf\Component\Routing\Event\RouterGenerateEvent', $event);
+                if (empty($that->seen)) {
+                    // phpunit is calling the callback twice, and because we update the event the second time fails
+                    $that->seen = true;
+                } else {
+                    return true;
+                }
+                $that->assertEquals($oldname, $event->getRoute());
+                $that->assertEquals($oldparameters, $event->getParameters());
+                $that->assertEquals($oldReferenceType, $event->getReferenceType());
+                $event->setRoute($newname);
+                $event->setParameters($newparameters);
+                $event->setReferenceType($newReferenceType);
+
+                return true;
+            }))
+        ;
+
+        $this->generator->expects($this->once())
+            ->method('generate')
+            ->with($newname, $newparameters, $newReferenceType)
+            ->will($this->returnValue('http://test'))
+        ;
+
+        $this->assertEquals('http://test', $router->generate($oldname, $oldparameters, $oldReferenceType));
     }
 }

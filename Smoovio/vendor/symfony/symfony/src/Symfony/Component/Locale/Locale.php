@@ -11,6 +11,8 @@
 
 namespace Symfony\Component\Locale;
 
+@trigger_error('The '.__NAMESPACE__.'\Locale class is deprecated since version 2.7, to be removed in Symfony 3.0. Use the methods provided by the \Symfony\Component\Intl\Intl class instead.', E_USER_DEPRECATED);
+
 use Symfony\Component\Intl\Intl;
 
 /**
@@ -18,8 +20,8 @@ use Symfony\Component\Intl\Intl;
  *
  * @author Bernhard Schussek <bschussek@gmail.com>
  *
- * @deprecated Deprecated since version 2.3, to be removed in 3.0. Use
- *             {@link \Locale} and {@link \Symfony\Component\Intl\Intl} instead.
+ * @deprecated since version 2.3, to be removed in 3.0.
+ *             Use {@link \Locale} and {@link \Symfony\Component\Intl\Intl} instead.
  */
 class Locale extends \Locale
 {
@@ -178,7 +180,7 @@ class Locale extends \Locale
     /**
      * Returns the fallback locale for a given locale, if any.
      *
-     * @param string $locale The locale to find the fallback for.
+     * @param string $locale The locale to find the fallback for
      *
      * @return string|null The fallback locale, or null if no parent exists
      */

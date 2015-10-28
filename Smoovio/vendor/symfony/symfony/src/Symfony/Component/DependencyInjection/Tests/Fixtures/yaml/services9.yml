@@ -9,41 +9,35 @@ services:
         tags:
             - { name: foo, foo: foo }
             - { name: foo, bar: bar, baz: baz }
-        factory_class: Bar\FooClass
-        factory_method: getInstance
         arguments: [foo, '@foo.baz', { '%foo%': 'foo is %foo%', foobar: '%foo%' }, true, '@service_container']
         properties: { foo: bar, moo: '@foo.baz', qux: { '%foo%': 'foo is %foo%', foobar: '%foo%' } }
         calls:
             - [setBar, ['@bar']]
             - [initialize, {  }]
 
+        factory: [Bar\FooClass, getInstance]
         configurator: sc_configure
+    foo.baz:
+        class: '%baz_class%'
+        factory: ['%baz_class%', getInstance]
+        configurator: ['%baz_class%', configureStatic1]
     bar:
         class: Bar\FooClass
         arguments: [foo, '@foo.baz', '%foo_bar%']
         configurator: ['@foo.baz', configure]
-    foo.baz:
-        class: %baz_class%
-        factory_class: %baz_class%
-        factory_method: getInstance
-        configurator: ['%baz_class%', configureStatic1]
     foo_bar:
-        class: %foo_class%
+        class: '%foo_class%'
         scope: prototype
     method_call1:
         class: Bar\FooClass
-        file: %path%foo.php
+        file: '%path%foo.php'
         calls:
             - [setBar, ['@foo']]
             - [setBar, ['@?foo2']]
             - [setBar, ['@?foo3']]
             - [setBar, ['@?foobaz']]
-            - [setBar, ['@=service("foo").foo() ~ (container.hasparameter("foo") ? parameter("foo") : "default")']]
+            - [setBar, ['@=service("foo").foo() ~ (container.hasParameter("foo") ? parameter("foo") : "default")']]
 
-    factory_service:
-        class: Bar
-        factory_method: getInstance
-        factory_service: foo.baz
     foo_with_inline:
         class: Foo
         calls:
@@ -64,12 +58,6 @@ services:
     request:
         class: Request
         synthetic: true
-        synchronized: true
-    depends_on_request:
-        class: stdClass
-        calls:
-            - [setRequest, ['@?request']]
-
     configurator_service:
         class: ConfClass
         public: false
@@ -92,6 +80,9 @@ services:
         class: FactoryClass
         public: false
         properties: { foo: bar }
+    factory_service:
+        class: Bar
+        factory: ['@foo.baz', getInstance]
     new_factory_service:
         class: FooBarBaz
         properties: { foo: bar }
@@ -99,5 +90,5 @@ services:
     service_from_static_method:
         class: Bar\FooClass
         factory: [Bar\FooClass, getInstance]
-    alias_for_foo: @foo
-    alias_for_alias: @foo
+    alias_for_foo: '@foo'
+    alias_for_alias: '@foo'

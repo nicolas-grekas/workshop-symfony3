@@ -34,7 +34,10 @@ abstract class AbstractRememberMeServices implements RememberMeServicesInterface
     const COOKIE_DELIMITER = ':';
 
     protected $logger;
-    protected $options;
+    protected $options = array(
+        'secure' => false,
+        'httponly' => true,
+    );
     private $providerKey;
     private $key;
     private $userProviders;
@@ -65,7 +68,7 @@ abstract class AbstractRememberMeServices implements RememberMeServicesInterface
         $this->userProviders = $userProviders;
         $this->key = $key;
         $this->providerKey = $providerKey;
-        $this->options = $options;
+        $this->options = array_merge($this->options, $options);
         $this->logger = $logger;
     }
 
@@ -137,7 +140,7 @@ abstract class AbstractRememberMeServices implements RememberMeServicesInterface
             }
         } catch (AuthenticationException $e) {
             if (null !== $this->logger) {
-                $this->logger->debug('Remember-Me authentication failed: '.$e->getMessage());
+                $this->logger->debug('Remember-Me authentication failed.', array('exception' => $e));
             }
         }
 
@@ -290,10 +293,10 @@ abstract class AbstractRememberMeServices implements RememberMeServicesInterface
     protected function cancelCookie(Request $request)
     {
         if (null !== $this->logger) {
-            $this->logger->debug(sprintf('Clearing remember-me cookie "%s"', $this->options['name']));
+            $this->logger->debug('Clearing remember-me cookie.', array('name' => $this->options['name']));
         }
 
-        $request->attributes->set(self::COOKIE_ATTR_NAME, new Cookie($this->options['name'], null, 1, $this->options['path'], $this->options['domain']));
+        $request->attributes->set(self::COOKIE_ATTR_NAME, new Cookie($this->options['name'], null, 1, $this->options['path'], $this->options['domain'], $this->options['secure'], $this->options['httponly']));
     }
 
     /**
@@ -312,7 +315,7 @@ abstract class AbstractRememberMeServices implements RememberMeServicesInterface
         $parameter = $request->get($this->options['remember_me_parameter'], null, true);
 
         if (null === $parameter && null !== $this->logger) {
-            $this->logger->debug(sprintf('Did not send remember-me cookie (remember-me parameter "%s" was not sent).', $this->options['remember_me_parameter']));
+            $this->logger->debug('Did not send remember-me cookie.', array('parameter' => $this->options['remember_me_parameter']));
         }
 
         return $parameter === 'true' || $parameter === 'on' || $parameter === '1' || $parameter === 'yes';

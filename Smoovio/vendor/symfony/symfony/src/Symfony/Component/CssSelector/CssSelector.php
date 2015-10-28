@@ -61,8 +61,6 @@ use Symfony\Component\CssSelector\XPath\Translator;
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * @author Fabien Potencier <fabien@symfony.com>
- *
- * @api
  */
 class CssSelector
 {
@@ -73,12 +71,10 @@ class CssSelector
      * Optionally, a prefix can be added to the resulting XPath
      * expression with the $prefix parameter.
      *
-     * @param mixed  $cssExpr The CSS expression.
-     * @param string $prefix  An optional prefix for the XPath expression.
+     * @param mixed  $cssExpr The CSS expression
+     * @param string $prefix  An optional prefix for the XPath expression
      *
      * @return string
-     *
-     * @api
      */
     public static function toXPath($cssExpr, $prefix = 'descendant-or-self::')
     {

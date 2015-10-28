@@ -26,8 +26,6 @@ use Symfony\Component\Console\Helper\HelperSet;
  * Base class for all commands.
  *
  * @author Fabien Potencier <fabien@symfony.com>
- *
- * @api
  */
 class Command
 {
@@ -42,7 +40,8 @@ class Command
     private $applicationDefinitionMerged = false;
     private $applicationDefinitionMergedWithArgs = false;
     private $code;
-    private $synopsis;
+    private $synopsis = array();
+    private $usages = array();
     private $helperSet;
 
     /**
@@ -51,8 +50,6 @@ class Command
      * @param string|null $name The name of the command; passing null means it must be set in configure()
      *
      * @throws \LogicException When the command name is empty
-     *
-     * @api
      */
     public function __construct($name = null)
     {
@@ -83,8 +80,6 @@ class Command
      * Sets the application instance for this command.
      *
      * @param Application $application An Application instance
-     *
-     * @api
      */
     public function setApplication(Application $application = null)
     {
@@ -120,8 +115,6 @@ class Command
      * Gets the application instance for this command.
      *
      * @return Application An Application instance
-     *
-     * @api
      */
     public function getApplication()
     {
@@ -213,13 +206,12 @@ class Command
      *
      * @see setCode()
      * @see execute()
-     *
-     * @api
      */
     public function run(InputInterface $input, OutputInterface $output)
     {
         // force the creation of the synopsis before the merge with the app definition
-        $this->getSynopsis();
+        $this->getSynopsis(true);
+        $this->getSynopsis(false);
 
         // add the application arguments and options
         $this->mergeApplicationDefinition();
@@ -249,6 +241,13 @@ class Command
             $this->interact($input, $output);
         }
 
+        // The command name argument is often omitted when a command is executed directly with its run() method.
+        // It would fail the validation if we didn't make sure the command argument is present,
+        // since it's required by the application.
+        if ($input->hasArgument('command') && null === $input->getArgument('command')) {
+            $input->setArgument('command', $this->getName());
+        }
+
         $input->validate();
 
         if ($this->code) {
@@ -273,8 +272,6 @@ class Command
      * @throws \InvalidArgumentException
      *
      * @see execute()
-     *
-     * @api
      */
     public function setCode($code)
     {
@@ -300,13 +297,13 @@ class Command
             return;
         }
 
+        $this->definition->addOptions($this->application->getDefinition()->getOptions());
+
         if ($mergeArgs) {
             $currentArguments = $this->definition->getArguments();
             $this->definition->setArguments($this->application->getDefinition()->getArguments());
             $this->definition->addArguments($currentArguments);
         }
-
-        $this->definition->addOptions($this->application->getDefinition()->getOptions());
 
         $this->applicationDefinitionMerged = true;
         if ($mergeArgs) {
@@ -320,8 +317,6 @@ class Command
      * @param array|InputDefinition $definition An array of argument and option instances or a definition instance
      *
      * @return Command The current instance
-     *
-     * @api
      */
     public function setDefinition($definition)
     {
@@ -340,8 +335,6 @@ class Command
      * Gets the InputDefinition attached to this Command.
      *
      * @return InputDefinition An InputDefinition instance
-     *
-     * @api
      */
     public function getDefinition()
     {
@@ -372,8 +365,6 @@ class Command
      * @param mixed  $default     The default value (for InputArgument::OPTIONAL mode only)
      *
      * @return Command The current instance
-     *
-     * @api
      */
     public function addArgument($name, $mode = null, $description = '', $default = null)
     {
@@ -389,11 +380,9 @@ class Command
      * @param string $shortcut    The shortcut (can be null)
      * @param int    $mode        The option mode: One of the InputOption::VALUE_* constants
      * @param string $description A description text
-     * @param mixed  $default     The default value (must be null for InputOption::VALUE_REQUIRED or InputOption::VALUE_NONE)
+     * @param mixed  $default     The default value (must be null for InputOption::VALUE_NONE)
      *
      * @return Command The current instance
-     *
-     * @api
      */
     public function addOption($name, $shortcut = null, $mode = null, $description = '', $default = null)
     {
@@ -415,8 +404,6 @@ class Command
      * @return Command The current instance
      *
      * @throws \InvalidArgumentException When the name is invalid
-     *
-     * @api
      */
     public function setName($name)
     {
@@ -450,8 +437,6 @@ class Command
      * Returns the command name.
      *
      * @return string The command name
-     *
-     * @api
      */
     public function getName()
     {
@@ -464,8 +449,6 @@ class Command
      * @param string $description The description for the command
      *
      * @return Command The current instance
-     *
-     * @api
      */
     public function setDescription($description)
     {
@@ -478,8 +461,6 @@ class Command
      * Returns the description for the command.
      *
      * @return string The description for the command
-     *
-     * @api
      */
     public function getDescription()
     {
@@ -492,8 +473,6 @@ class Command
      * @param string $help The help for the command
      *
      * @return Command The current instance
-     *
-     * @api
      */
     public function setHelp($help)
     {
@@ -506,8 +485,6 @@ class Command
      * Returns the help for the command.
      *
      * @return string The help for the command
-     *
-     * @api
      */
     public function getHelp()
     {
@@ -533,7 +510,7 @@ class Command
             $_SERVER['PHP_SELF'].' '.$name,
         );
 
-        return str_replace($placeholders, $replacements, $this->getHelp());
+        return str_replace($placeholders, $replacements, $this->getHelp() ?: $this->getDescription());
     }
 
     /**
@@ -544,8 +521,6 @@ class Command
      * @return Command The current instance
      *
      * @throws \InvalidArgumentException When an alias is invalid
-     *
-     * @api
      */
     public function setAliases($aliases)
     {
@@ -566,8 +541,6 @@ class Command
      * Returns the aliases for the command.
      *
      * @return array An array of aliases for the command
-     *
-     * @api
      */
     public function getAliases()
     {
@@ -577,15 +550,47 @@ class Command
     /**
      * Returns the synopsis for the command.
      *
+     * @param bool $short Whether to show the short version of the synopsis (with options folded) or not
+     *
      * @return string The synopsis
      */
-    public function getSynopsis()
+    public function getSynopsis($short = false)
     {
-        if (null === $this->synopsis) {
-            $this->synopsis = trim(sprintf('%s %s', $this->name, $this->definition->getSynopsis()));
+        $key = $short ? 'short' : 'long';
+
+        if (!isset($this->synopsis[$key])) {
+            $this->synopsis[$key] = trim(sprintf('%s %s', $this->name, $this->definition->getSynopsis($short)));
         }
 
-        return $this->synopsis;
+        return $this->synopsis[$key];
+    }
+
+    /**
+     * Add a command usage example.
+     *
+     * @param string $usage The usage, it'll be prefixed with the command name
+     *
+     * @return Command The current instance
+     */
+    public function addUsage($usage)
+    {
+        if (0 !== strpos($usage, $this->name)) {
+            $usage = sprintf('%s %s', $this->name, $usage);
+        }
+
+        $this->usages[] = $usage;
+
+        return $this;
+    }
+
+    /**
+     * Returns alternative usages of the command.
+     *
+     * @return array
+     */
+    public function getUsages()
+    {
+        return $this->usages;
     }
 
     /**
@@ -595,12 +600,15 @@ class Command
      *
      * @return mixed The helper value
      *
+     * @throws \LogicException           if no HelperSet is defined
      * @throws \InvalidArgumentException if the helper is not defined
-     *
-     * @api
      */
     public function getHelper($name)
     {
+        if (null === $this->helperSet) {
+            throw new \LogicException(sprintf('Cannot retrieve helper "%s" because there is no HelperSet defined. Did you forget to add your command to the application or to set the application on the command using the setApplication() method? You can also set the HelperSet directly using the setHelperSet() method.', $name));
+        }
+
         return $this->helperSet->get($name);
     }
 
@@ -609,10 +617,12 @@ class Command
      *
      * @return string A string representing the command
      *
-     * @deprecated Deprecated since version 2.3, to be removed in 3.0.
+     * @deprecated since version 2.3, to be removed in 3.0.
      */
     public function asText()
     {
+        @trigger_error('The '.__METHOD__.' method is deprecated since version 2.3 and will be removed in 3.0.', E_USER_DEPRECATED);
+
         $descriptor = new TextDescriptor();
         $output = new BufferedOutput(BufferedOutput::VERBOSITY_NORMAL, true);
         $descriptor->describe($output, $this, array('raw_output' => true));
@@ -627,10 +637,12 @@ class Command
      *
      * @return string|\DOMDocument An XML string representing the command
      *
-     * @deprecated Deprecated since version 2.3, to be removed in 3.0.
+     * @deprecated since version 2.3, to be removed in 3.0.
      */
     public function asXml($asDom = false)
     {
+        @trigger_error('The '.__METHOD__.' method is deprecated since version 2.3 and will be removed in 3.0.', E_USER_DEPRECATED);
+
         $descriptor = new XmlDescriptor();
 
         if ($asDom) {

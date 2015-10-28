@@ -28,18 +28,6 @@ class ServerRunCommand extends ServerCommand
     /**
      * {@inheritdoc}
      */
-    public function isEnabled()
-    {
-        if (PHP_VERSION_ID < 50400 || defined('HHVM_VERSION')) {
-            return false;
-        }
-
-        return parent::isEnabled();
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     protected function configure()
     {
         $this
@@ -50,7 +38,7 @@ class ServerRunCommand extends ServerCommand
             ))
             ->setName('server:run')
             ->setDescription('Runs PHP built-in web server')
-            ->setHelp(<<<EOF
+            ->setHelp(<<<'EOF'
 The <info>%command.name%</info> runs PHP built-in web server:
 
   <info>%command.full_name%</info>
@@ -68,8 +56,8 @@ router script using <info>--router</info> option:
 
   <info>%command.full_name% --router=app/config/router.php</info>
 
-Specifing a router script is required when the used environment is not "dev" or
-"prod".
+Specifing a router script is required when the used environment is not "dev",
+"prod", or "test".
 
 See also: http://www.php.net/manual/en/features.commandline.webserver.php
 

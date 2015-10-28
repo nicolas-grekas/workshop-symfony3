@@ -130,7 +130,7 @@ class GraphvizDumper extends Dumper
      *
      * @return array An array of edges
      */
-    private function findEdges($id, $arguments, $required, $name)
+    private function findEdges($id, array $arguments, $required, $name)
     {
         $edges = array();
         foreach ($arguments as $argument) {
@@ -166,14 +166,18 @@ class GraphvizDumper extends Dumper
         $container = $this->cloneContainer();
 
         foreach ($container->getDefinitions() as $id => $definition) {
-            $className = $definition->getClass();
+            $class = $definition->getClass();
+
+            if ('\\' === substr($class, 0, 1)) {
+                $class = substr($class, 1);
+            }
 
             try {
-                $className = $this->container->getParameterBag()->resolveValue($className);
+                $class = $this->container->getParameterBag()->resolveValue($class);
             } catch (ParameterNotFoundException $e) {
             }
 
-            $nodes[$id] = array('class' => str_replace('\\', '\\\\', $className), 'attributes' => array_merge($this->options['node.definition'], array('style' => ContainerInterface::SCOPE_PROTOTYPE !== $definition->getScope() ? 'filled' : 'dotted')));
+            $nodes[$id] = array('class' => str_replace('\\', '\\\\', $class), 'attributes' => array_merge($this->options['node.definition'], array('style' => ContainerInterface::SCOPE_PROTOTYPE !== $definition->getScope() ? 'filled' : 'dotted')));
             $container->setDefinition($id, new Definition('stdClass'));
         }
 
@@ -242,7 +246,7 @@ class GraphvizDumper extends Dumper
      *
      * @return string A comma separated list of attributes
      */
-    private function addAttributes($attributes)
+    private function addAttributes(array $attributes)
     {
         $code = array();
         foreach ($attributes as $k => $v) {
@@ -259,7 +263,7 @@ class GraphvizDumper extends Dumper
      *
      * @return string A space separated list of options
      */
-    private function addOptions($options)
+    private function addOptions(array $options)
     {
         $code = array();
         foreach ($options as $k => $v) {

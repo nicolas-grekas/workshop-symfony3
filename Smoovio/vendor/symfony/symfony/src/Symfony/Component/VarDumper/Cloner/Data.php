@@ -22,7 +22,7 @@ class Data
     private $useRefHandles = -1;
 
     /**
-     * @param array $data A array as returned by ClonerInterface::cloneVar().
+     * @param array $data A array as returned by ClonerInterface::cloneVar()
      */
     public function __construct(array $data)
     {
@@ -30,7 +30,7 @@ class Data
     }
 
     /**
-     * @return array The raw data structure.
+     * @return array The raw data structure
      */
     public function getRawData()
     {
@@ -40,14 +40,63 @@ class Data
     /**
      * Returns a depth limited clone of $this.
      *
-     * @param int  $maxDepth         The max dumped depth level.
-     * @param int  $maxItemsPerDepth The max number of items dumped per depth level.
-     * @param bool $useRefHandles    False to hide ref. handles.
+     * @param int $maxDepth The max dumped depth level
      *
-     * @return self A depth limited clone of $this.
+     * @return self A clone of $this
+     */
+    public function withMaxDepth($maxDepth)
+    {
+        $data = clone $this;
+        $data->maxDepth = (int) $maxDepth;
+
+        return $data;
+    }
+
+    /**
+     * Limits the number of elements per depth level.
+     *
+     * @param int $maxItemsPerDepth The max number of items dumped per depth level
+     *
+     * @return self A clone of $this
+     */
+    public function withMaxItemsPerDepth($maxItemsPerDepth)
+    {
+        $data = clone $this;
+        $data->maxItemsPerDepth = (int) $maxItemsPerDepth;
+
+        return $data;
+    }
+
+    /**
+     * Enables/disables objects' identifiers tracking.
+     *
+     * @param bool $useRefHandles False to hide global ref. handles
+     *
+     * @return self A clone of $this
+     */
+    public function withRefHandles($useRefHandles)
+    {
+        $data = clone $this;
+        $data->useRefHandles = $useRefHandles ? -1 : 0;
+
+        return $data;
+    }
+
+    /**
+     * Returns a depth limited clone of $this.
+     *
+     * @param int  $maxDepth         The max dumped depth level
+     * @param int  $maxItemsPerDepth The max number of items dumped per depth level
+     * @param bool $useRefHandles    False to hide ref. handles
+     *
+     * @return self A depth limited clone of $this
+     *
+     * @deprecated since Symfony 2.7, to be removed in 3.0. Use withMaxDepth, withMaxItemsPerDepth or withRefHandles instead.
      */
     public function getLimitedClone($maxDepth, $maxItemsPerDepth, $useRefHandles = true)
     {
+        @trigger_error('The '.__METHOD__.' method is deprecated since Symfony 2.7 and will be removed in 3.0. Use withMaxDepth, withMaxItemsPerDepth or withRefHandles methods instead.', E_USER_DEPRECATED);
+
         $data = clone $this;
         $data->maxDepth = (int) $maxDepth;
         $data->maxItemsPerDepth = (int) $maxItemsPerDepth;
@@ -68,10 +117,10 @@ class Data
     /**
      * Depth-first dumping of items.
      *
-     * @param DumperInterface $dumper The dumper being used for dumping.
-     * @param Cursor          $cursor A cursor used for tracking dumper state position.
-     * @param array           &$refs  A map of all references discovered while dumping.
-     * @param mixed           $item   A Stub object or the original value being dumped.
+     * @param DumperInterface $dumper The dumper being used for dumping
+     * @param Cursor          $cursor A cursor used for tracking dumper state position
+     * @param array           &$refs  A map of all references discovered while dumping
+     * @param mixed           $item   A Stub object or the original value being dumped
      */
     private function dumpItem($dumper, $cursor, &$refs, $item)
     {
@@ -127,16 +176,20 @@ class Data
                     break;
 
                 case Stub::TYPE_ARRAY:
-                    $dumper->enterHash($cursor, $item->class, $item->value, (bool) $children);
-                    $cut = $this->dumpChildren($dumper, $cursor, $refs, $children, $cut, $item->class);
-                    $dumper->leaveHash($cursor, $item->class, $item->value, (bool) $children, $cut);
-                    break;
-
+                    $item = clone $item;
+                    $item->type = $item->class;
+                    $item->class = $item->value;
+                    // No break;
                 case Stub::TYPE_OBJECT:
                 case Stub::TYPE_RESOURCE:
-                    $dumper->enterHash($cursor, $item->type, $item->class, (bool) $children);
-                    $cut = $this->dumpChildren($dumper, $cursor, $refs, $children, $cut, $item->type);
-                    $dumper->leaveHash($cursor, $item->type, $item->class, (bool) $children, $cut);
+                    $withChildren = $children && $cursor->depth !== $this->maxDepth && $this->maxItemsPerDepth;
+                    $dumper->enterHash($cursor, $item->type, $item->class, $withChildren);
+                    if ($withChildren) {
+                        $cut = $this->dumpChildren($dumper, $cursor, $refs, $children, $cut, $item->type);
+                    } elseif ($children && 0 <= $cut) {
+                        $cut += count($children);
+                    }
+                    $dumper->leaveHash($cursor, $item->type, $item->class, $withChildren, $cut);
                     break;
 
                 default:
@@ -156,36 +209,30 @@ class Data
      * Dumps children of hash structures.
      *
      * @param DumperInterface $dumper
-     * @param Cursor          $parentCursor The cursor of the parent hash.
-     * @param array           &$refs        A map of all references discovered while dumping.
-     * @param array           $children     The children to dump.
-     * @param int             $hashCut      The number of items removed from the original hash.
-     * @param string          $hashType     A Cursor::HASH_* const.
+     * @param Cursor          $parentCursor The cursor of the parent hash
+     * @param array           &$refs        A map of all references discovered while dumping
+     * @param array           $children     The children to dump
+     * @param int             $hashCut      The number of items removed from the original hash
+     * @param string          $hashType     A Cursor::HASH_* const
      *
-     * @return int The final number of removed items.
+     * @return int The final number of removed items
      */
     private function dumpChildren($dumper, $parentCursor, &$refs, $children, $hashCut, $hashType)
     {
-        if ($children) {
-            if ($parentCursor->depth !== $this->maxDepth && $this->maxItemsPerDepth) {
-                $cursor = clone $parentCursor;
-                ++$cursor->depth;
-                $cursor->hashType = $hashType;
-                $cursor->hashIndex = 0;
-                $cursor->hashLength = count($children);
-                $cursor->hashCut = $hashCut;
-                foreach ($children as $key => $child) {
-                    $cursor->hashKeyIsBinary = isset($key[0]) && !preg_match('//u', $key);
-                    $cursor->hashKey = $key;
-                    $this->dumpItem($dumper, $cursor, $refs, $child);
-                    if (++$cursor->hashIndex === $this->maxItemsPerDepth || $cursor->stop) {
-                        $parentCursor->stop = true;
+        $cursor = clone $parentCursor;
+        ++$cursor->depth;
+        $cursor->hashType = $hashType;
+        $cursor->hashIndex = 0;
+        $cursor->hashLength = count($children);
+        $cursor->hashCut = $hashCut;
+        foreach ($children as $key => $child) {
+            $cursor->hashKeyIsBinary = isset($key[0]) && !preg_match('//u', $key);
+            $cursor->hashKey = $key;
+            $this->dumpItem($dumper, $cursor, $refs, $child);
+            if (++$cursor->hashIndex === $this->maxItemsPerDepth || $cursor->stop) {
+                $parentCursor->stop = true;
 
-                        return $hashCut >= 0 ? $hashCut + $cursor->hashLength - $cursor->hashIndex : $hashCut;
-                    }
-                }
-            } elseif ($hashCut >= 0) {
-                $hashCut += count($children);
+                return $hashCut >= 0 ? $hashCut + $cursor->hashLength - $cursor->hashIndex : $hashCut;
             }
         }
 

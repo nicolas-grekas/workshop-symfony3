@@ -11,6 +11,7 @@
 
 namespace Symfony\Component\Console\Helper;
 
+use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Formatter\OutputFormatterStyle;
 
@@ -19,14 +20,21 @@ use Symfony\Component\Console\Formatter\OutputFormatterStyle;
  *
  * @author Fabien Potencier <fabien@symfony.com>
  *
- * @deprecated Deprecated since version 2.5, to be removed in 3.0.
- *             Use the question helper instead.
+ * @deprecated since version 2.5, to be removed in 3.0.
+ *             Use {@link \Symfony\Component\Console\Helper\QuestionHelper} instead.
  */
 class DialogHelper extends InputAwareHelper
 {
     private $inputStream;
     private static $shell;
     private static $stty;
+
+    public function __construct($triggerDeprecationError = true)
+    {
+        if ($triggerDeprecationError) {
+            @trigger_error('"Symfony\Component\Console\Helper\DialogHelper" is deprecated since version 2.5 and will be removed in 3.0. Use "Symfony\Component\Console\Helper\QuestionHelper" instead.', E_USER_DEPRECATED);
+        }
+    }
 
     /**
      * Asks the user to select a value.
@@ -45,11 +53,15 @@ class DialogHelper extends InputAwareHelper
      */
     public function select(OutputInterface $output, $question, $choices, $default = null, $attempts = false, $errorMessage = 'Value "%s" is invalid', $multiselect = false)
     {
+        if ($output instanceof ConsoleOutputInterface) {
+            $output = $output->getErrorOutput();
+        }
+
         $width = max(array_map('strlen', array_keys($choices)));
 
         $messages = (array) $question;
         foreach ($choices as $key => $value) {
-            $messages[] = sprintf("  [<info>%-${width}s</info>] %s", $key, $value);
+            $messages[] = sprintf("  [<info>%-{$width}s</info>] %s", $key, $value);
         }
 
         $output->writeln($messages);
@@ -103,6 +115,10 @@ class DialogHelper extends InputAwareHelper
     {
         if ($this->input && !$this->input->isInteractive()) {
             return $default;
+        }
+
+        if ($output instanceof ConsoleOutputInterface) {
+            $output = $output->getErrorOutput();
         }
 
         $output->write($question);
@@ -262,6 +278,10 @@ class DialogHelper extends InputAwareHelper
      */
     public function askHiddenResponse(OutputInterface $output, $question, $fallback = true)
     {
+        if ($output instanceof ConsoleOutputInterface) {
+            $output = $output->getErrorOutput();
+        }
+
         if ('\\' === DIRECTORY_SEPARATOR) {
             $exe = __DIR__.'/../Resources/bin/hiddeninput.exe';
 
@@ -392,7 +412,7 @@ class DialogHelper extends InputAwareHelper
     /**
      * Returns the helper's input stream.
      *
-     * @return string
+     * @return resource|null The input stream or null if the default STDIN is used
      */
     public function getInputStream()
     {
@@ -451,7 +471,7 @@ class DialogHelper extends InputAwareHelper
      * @param callable        $interviewer A callable that will ask for a question and return the result
      * @param OutputInterface $output      An Output instance
      * @param callable        $validator   A PHP callback
-     * @param int|false       $attempts    Max number of times to ask before giving up ; false will ask infinitely
+     * @param int|false       $attempts    Max number of times to ask before giving up; false will ask infinitely
      *
      * @return string The validated response
      *
@@ -459,6 +479,10 @@ class DialogHelper extends InputAwareHelper
      */
     private function validateAttempts($interviewer, OutputInterface $output, $validator, $attempts)
     {
+        if ($output instanceof ConsoleOutputInterface) {
+            $output = $output->getErrorOutput();
+        }
+
         $e = null;
         while (false === $attempts || $attempts--) {
             if (null !== $e) {

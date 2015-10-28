@@ -131,13 +131,13 @@ class FormHelper extends Helper
      *
      * @return string The HTML markup
      *
-     * @deprecated Deprecated since version 2.3, to be removed in 3.0. Use
-     *             {@link start} instead.
+     * @deprecated since version 2.3, to be removed in 3.0.
+     *             Use {@link start} instead.
      */
     public function enctype(FormView $view)
     {
-        // Uncomment this as soon as the deprecation note should be shown
-        // trigger_error('The form helper $view[\'form\']->enctype() is deprecated since version 2.3 and will be removed in 3.0. Use $view[\'form\']->start() instead.', E_USER_DEPRECATED);
+        @trigger_error('The form helper $view[\'form\']->enctype() is deprecated since version 2.3 and will be removed in 3.0. Use $view[\'form\']->start() instead.', E_USER_DEPRECATED);
+
         return $this->renderer->searchAndRenderBlock($view, 'enctype');
     }
 
@@ -223,9 +223,9 @@ class FormHelper extends Helper
     /**
      * Renders a block of the template.
      *
-     * @param FormView $view      The view for determining the used themes.
-     * @param string   $blockName The name of the block to render.
-     * @param array    $variables The variable to pass to the template.
+     * @param FormView $view      The view for determining the used themes
+     * @param string   $blockName The name of the block to render
+     * @param array    $variables The variable to pass to the template
      *
      * @return string The HTML markup
      */

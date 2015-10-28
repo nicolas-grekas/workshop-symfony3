@@ -11,6 +11,8 @@
 
 namespace Symfony\Component\Form\Extension\Core\ChoiceList;
 
+@trigger_error('The '.__NAMESPACE__.'\SimpleChoiceList class is deprecated since version 2.7 and will be removed in 3.0. Use Symfony\Component\Form\ChoiceList\ArrayChoiceList instead.', E_USER_DEPRECATED);
+
 /**
  * A choice list for choices of type string or integer.
  *
@@ -28,6 +30,9 @@ namespace Symfony\Component\Form\Extension\Core\ChoiceList;
  * </code>
  *
  * @author Bernhard Schussek <bschussek@gmail.com>
+ *
+ * @deprecated since version 2.7, to be removed in 3.0.
+ *             Use {@link \Symfony\Component\Form\ChoiceList\ArrayChoiceList} instead.
  */
 class SimpleChoiceList extends ChoiceList
 {
@@ -82,9 +87,9 @@ class SimpleChoiceList extends ChoiceList
      *                                               view objects.
      * @param array              $bucketForRemaining The bucket where to store the
      *                                               non-preferred view objects.
-     * @param array|\Traversable $choices            The list of choices.
-     * @param array              $labels             Ignored.
-     * @param array              $preferredChoices   The preferred choices.
+     * @param array|\Traversable $choices            The list of choices
+     * @param array              $labels             Ignored
+     * @param array              $preferredChoices   The preferred choices
      */
     protected function addChoices(array &$bucketForPreferred, array &$bucketForRemaining, $choices, array $labels, array $preferredChoices)
     {
@@ -121,10 +126,10 @@ class SimpleChoiceList extends ChoiceList
      * Optimized for performance by treating the preferred choices as array
      * where choices are stored in the keys.
      *
-     * @param mixed $choice           The choice to test.
-     * @param array $preferredChoices An array of preferred choices.
+     * @param mixed $choice           The choice to test
+     * @param array $preferredChoices An array of preferred choices
      *
-     * @return bool Whether the choice is preferred.
+     * @return bool Whether the choice is preferred
      */
     protected function isPreferred($choice, array $preferredChoices)
     {

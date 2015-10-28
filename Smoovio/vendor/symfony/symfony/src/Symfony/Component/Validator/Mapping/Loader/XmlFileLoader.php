@@ -182,15 +182,9 @@ class XmlFileLoader extends FileLoader
         return simplexml_import_dom($dom);
     }
 
-    /**
-     * Loads the validation metadata from the given XML class description.
-     *
-     * @param ClassMetadata $metadata         The metadata to load
-     * @param array         $classDescription The XML class description
-     */
-    private function loadClassMetadataFromXml(ClassMetadata $metadata, $classDescription)
+    private function loadClassMetadataFromXml(ClassMetadata $metadata, \SimpleXMLElement $classDescription)
     {
-        foreach ($classDescription->{'group-sequence-provider'} as $_) {
+        if (count($classDescription->{'group-sequence-provider'}) > 0) {
             $metadata->setGroupSequenceProvider(true);
         }
 

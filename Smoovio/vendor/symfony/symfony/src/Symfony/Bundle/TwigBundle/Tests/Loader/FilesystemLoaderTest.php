@@ -17,7 +17,7 @@ use Symfony\Bundle\TwigBundle\Tests\TestCase;
 
 class FilesystemLoaderTest extends TestCase
 {
-    public function testGetSource()
+    public function testGetSourceContext()
     {
         $parser = $this->getMock('Symfony\Component\Templating\TemplateNameParserInterface');
         $locator = $this->getMock('Symfony\Component\Config\FileLocatorInterface');
@@ -30,10 +30,10 @@ class FilesystemLoaderTest extends TestCase
         $loader->addPath(__DIR__.'/../DependencyInjection/Fixtures/Resources/views', 'namespace');
 
         // Twig-style
-        $this->assertEquals("This is a layout\n", $loader->getSource('@namespace/layout.html.twig'));
+        $this->assertEquals("This is a layout\n", $loader->getSourceContext('@namespace/layout.html.twig')->getCode());
 
         // Symfony-style
-        $this->assertEquals("This is a layout\n", $loader->getSource('TwigBundle::layout.html.twig'));
+        $this->assertEquals("This is a layout\n", $loader->getSourceContext('TwigBundle::layout.html.twig')->getCode());
     }
 
     public function testExists()
@@ -48,7 +48,7 @@ class FilesystemLoaderTest extends TestCase
         ;
         $loader = new FilesystemLoader($locator, $parser);
 
-        return $this->assertTrue($loader->exists($template));
+        $this->assertTrue($loader->exists($template));
     }
 
     /**
@@ -97,5 +97,22 @@ class FilesystemLoaderTest extends TestCase
 
         $loader = new FilesystemLoader($locator, $parser);
         $loader->getCacheKey('name.format.engine');
+    }
+
+    /**
+     * @expectedException \Twig_Error_Loader
+     * @expectedExceptionMessageRegExp /Unable to find template "name\.format\.engine" \(looked into: .*Tests.Loader.\.\..DependencyInjection.Fixtures.Resources.views\)/
+     */
+    public function testTwigErrorIfTemplateDoesNotExist()
+    {
+        $parser = $this->getMock('Symfony\Component\Templating\TemplateNameParserInterface');
+        $locator = $this->getMock('Symfony\Component\Config\FileLocatorInterface');
+
+        $loader = new FilesystemLoader($locator, $parser);
+        $loader->addPath(__DIR__.'/../DependencyInjection/Fixtures/Resources/views');
+
+        $method = new \ReflectionMethod('Symfony\Bundle\TwigBundle\Loader\FilesystemLoader', 'findTemplate');
+        $method->setAccessible(true);
+        $method->invoke($loader, 'name.format.engine');
     }
 }

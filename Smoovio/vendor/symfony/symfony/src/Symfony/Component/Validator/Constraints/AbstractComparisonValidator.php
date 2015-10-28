@@ -11,6 +11,7 @@
 
 namespace Symfony\Component\Validator\Constraints;
 
+use Symfony\Component\Validator\Context\ExecutionContextInterface;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
@@ -43,7 +44,7 @@ abstract class AbstractComparisonValidator extends ConstraintValidator
         // the DateTime constructor:
         // http://php.net/manual/en/datetime.formats.php
         if (is_string($comparedValue)) {
-            if ($value instanceof \DatetimeImmutable) {
+            if ($value instanceof \DateTimeImmutable) {
                 // If $value is immutable, convert the compared value to a
                 // DateTimeImmutable too
                 $comparedValue = new \DatetimeImmutable($comparedValue);
@@ -54,11 +55,19 @@ abstract class AbstractComparisonValidator extends ConstraintValidator
         }
 
         if (!$this->compareValues($value, $comparedValue)) {
-            $this->buildViolation($constraint->message)
-                ->setParameter('{{ value }}', $this->formatValue($value, self::OBJECT_TO_STRING | self::PRETTY_DATE))
-                ->setParameter('{{ compared_value }}', $this->formatValue($comparedValue, self::OBJECT_TO_STRING | self::PRETTY_DATE))
-                ->setParameter('{{ compared_value_type }}', $this->formatTypeOf($comparedValue))
-                ->addViolation();
+            if ($this->context instanceof ExecutionContextInterface) {
+                $this->context->buildViolation($constraint->message)
+                    ->setParameter('{{ value }}', $this->formatValue($value, self::OBJECT_TO_STRING | self::PRETTY_DATE))
+                    ->setParameter('{{ compared_value }}', $this->formatValue($comparedValue, self::OBJECT_TO_STRING | self::PRETTY_DATE))
+                    ->setParameter('{{ compared_value_type }}', $this->formatTypeOf($comparedValue))
+                    ->addViolation();
+            } else {
+                $this->buildViolation($constraint->message)
+                    ->setParameter('{{ value }}', $this->formatValue($value, self::OBJECT_TO_STRING | self::PRETTY_DATE))
+                    ->setParameter('{{ compared_value }}', $this->formatValue($comparedValue, self::OBJECT_TO_STRING | self::PRETTY_DATE))
+                    ->setParameter('{{ compared_value_type }}', $this->formatTypeOf($comparedValue))
+                    ->addViolation();
+            }
         }
     }
 

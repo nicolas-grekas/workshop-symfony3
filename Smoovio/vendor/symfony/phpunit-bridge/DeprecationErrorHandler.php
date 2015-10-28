@@ -18,13 +18,44 @@ namespace Symfony\Bridge\PhpUnit;
  */
 class DeprecationErrorHandler
 {
+    const MODE_WEAK = 'weak';
+
     private static $isRegistered = false;
 
-    public static function register($mode = false)
+    /**
+     * Registers and configures the deprecation handler.
+     *
+     * The following reporting modes are supported:
+     * - use "weak" to hide the deprecation report but keep a global count;
+     * - use "/some-regexp/" to stop the test suite whenever a deprecation
+     *   message matches the given regular expression;
+     * - use a number to define the upper bound of allowed deprecations,
+     *   making the test suite fail whenever more notices are trigerred.
+     *
+     * @param int|string|false $mode The reporting mode, defaults to not allowing any deprecations
+     */
+    public static function register($mode = 0)
     {
         if (self::$isRegistered) {
             return;
         }
+
+        $getMode = function () use ($mode) {
+            static $memoizedMode = false;
+
+            if (false !== $memoizedMode) {
+                return $memoizedMode;
+            }
+            if (false === $mode) {
+                $mode = getenv('SYMFONY_DEPRECATIONS_HELPER');
+            }
+            if (DeprecationErrorHandler::MODE_WEAK !== $mode && (!isset($mode[0]) || '/' !== $mode[0])) {
+                $mode = preg_match('/^[1-9][0-9]*$/', $mode) ? (int) $mode : 0;
+            }
+
+            return $memoizedMode = $mode;
+        };
+
         $deprecations = array(
             'unsilencedCount' => 0,
             'remainingCount' => 0,
@@ -35,36 +66,58 @@ class DeprecationErrorHandler
             'legacy' => array(),
             'other' => array(),
         );
-        $deprecationHandler = function ($type, $msg, $file, $line, $context) use (&$deprecations, $mode) {
+        $deprecationHandler = function ($type, $msg, $file, $line, $context) use (&$deprecations, $getMode) {
             if (E_USER_DEPRECATED !== $type) {
                 return \PHPUnit_Util_ErrorHandler::handleError($type, $msg, $file, $line, $context);
             }
 
-            $trace = debug_backtrace(PHP_VERSION_ID >= 50400 ? DEBUG_BACKTRACE_IGNORE_ARGS | DEBUG_BACKTRACE_PROVIDE_OBJECT : true);
+            $mode = $getMode();
+            $trace = debug_backtrace(true);
+            $group = 'other';
 
             $i = count($trace);
-            while (isset($trace[--$i]['class']) && ('ReflectionMethod' === $trace[$i]['class'] || 0 === strpos($trace[$i]['class'], 'PHPUnit_'))) {
+            while (1 < $i && (!isset($trace[--$i]['class']) || ('ReflectionMethod' === $trace[$i]['class'] || 0 === strpos($trace[$i]['class'], 'PHPUnit_')))) {
                 // No-op
             }
 
-            if (0 !== error_reporting()) {
-                $group = 'unsilenced';
-                $ref = &$deprecations[$group][$msg]['count'];
-                ++$ref;
-            } elseif (isset($trace[$i]['object']) || isset($trace[$i]['class'])) {
+            if (isset($trace[$i]['object']) || isset($trace[$i]['class'])) {
                 $class = isset($trace[$i]['object']) ? get_class($trace[$i]['object']) : $trace[$i]['class'];
                 $method = $trace[$i]['function'];
 
-                $group = 0 === strpos($method, 'testLegacy') || 0 === strpos($method, 'provideLegacy') || 0 === strpos($method, 'getLegacy') || strpos($class, '\Legacy') || in_array('legacy', \PHPUnit_Util_Test::getGroups($class, $method), true) ? 'legacy' : 'remaining';
+                if (0 !== error_reporting()) {
+                    $group = 'unsilenced';
+                } elseif (0 === strpos($method, 'testLegacy')
+                    || 0 === strpos($method, 'provideLegacy')
+                    || 0 === strpos($method, 'getLegacy')
+                    || strpos($class, '\Legacy')
+                    || in_array('legacy', \PHPUnit_Util_Test::getGroups($class, $method), true)
+                ) {
+                    $group = 'legacy';
+                } else {
+                    $group = 'remaining';
+                }
 
-                if ('legacy' !== $group && 'weak' !== $mode) {
+                if (isset($mode[0]) && '/' === $mode[0] && preg_match($mode, $msg)) {
+                    $e = new \Exception($msg);
+                    $r = new \ReflectionProperty($e, 'trace');
+                    $r->setAccessible(true);
+                    $r->setValue($e, array_slice($trace, 1, $i));
+
+                    echo "\n".ucfirst($group).' deprecation triggered by '.$class.'::'.$method.':';
+                    echo "\n".$msg;
+                    echo "\nStack trace:";
+                    echo "\n".str_replace(' '.getcwd().DIRECTORY_SEPARATOR, ' ', $e->getTraceAsString());
+                    echo "\n";
+
+                    exit(1);
+                }
+                if ('legacy' !== $group && DeprecationErrorHandler::MODE_WEAK !== $mode) {
                     $ref = &$deprecations[$group][$msg]['count'];
                     ++$ref;
                     $ref = &$deprecations[$group][$msg][$class.'::'.$method];
                     ++$ref;
                 }
-            } else {
-                $group = 'other';
+            } elseif (DeprecationErrorHandler::MODE_WEAK !== $mode) {
                 $ref = &$deprecations[$group][$msg]['count'];
                 ++$ref;
             }
@@ -89,10 +142,17 @@ class DeprecationErrorHandler
             } else {
                 $colorize = function ($str) {return $str;};
             }
-            register_shutdown_function(function () use ($mode, &$deprecations, $deprecationHandler, $colorize) {
+            register_shutdown_function(function () use ($getMode, &$deprecations, $deprecationHandler, $colorize) {
+                $mode = $getMode();
+                if (isset($mode[0]) && '/' === $mode[0]) {
+                    return;
+                }
                 $currErrorHandler = set_error_handler('var_dump');
                 restore_error_handler();
 
+                if (DeprecationErrorHandler::MODE_WEAK === $mode) {
+                    $colorize = function ($str) {return $str;};
+                }
                 if ($currErrorHandler !== $deprecationHandler) {
                     echo "\n", $colorize('THE ERROR HANDLER HAS CHANGED!', true), "\n";
                 }
@@ -123,7 +183,8 @@ class DeprecationErrorHandler
                 if (!empty($notices)) {
                     echo "\n";
                 }
-                if ('weak' !== $mode && ($deprecations['unsilenced'] || $deprecations['remaining'] || $deprecations['other'])) {
+
+                if (DeprecationErrorHandler::MODE_WEAK !== $mode && $mode < $deprecations['unsilencedCount'] + $deprecations['remainingCount'] + $deprecations['otherCount']) {
                     exit(1);
                 }
             });
@@ -133,7 +194,11 @@ class DeprecationErrorHandler
     private static function hasColorSupport()
     {
         if ('\\' === DIRECTORY_SEPARATOR) {
-            return false !== getenv('ANSICON') || 'ON' === getenv('ConEmuANSI') || 'xterm' === getenv('TERM');
+            return
+                '10.0.10586' === PHP_WINDOWS_VERSION_MAJOR.'.'.PHP_WINDOWS_VERSION_MINOR.'.'.PHP_WINDOWS_VERSION_BUILD
+                || false !== getenv('ANSICON')
+                || 'ON' === getenv('ConEmuANSI')
+                || 'xterm' === getenv('TERM');
         }
 
         return defined('STDOUT') && function_exists('posix_isatty') && @posix_isatty(STDOUT);

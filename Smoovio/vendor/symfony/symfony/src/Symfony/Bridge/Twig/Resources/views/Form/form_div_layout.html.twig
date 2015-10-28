@@ -46,13 +46,13 @@
     <div {{ block('widget_container_attributes') }}>
     {%- for child in form %}
         {{- form_widget(child) -}}
-        {{- form_label(child) -}}
+        {{- form_label(child, null, {translation_domain: choice_translation_domain}) -}}
     {% endfor -%}
     </div>
 {%- endblock choice_widget_expanded -%}
 
 {%- block choice_widget_collapsed -%}
-    {%- if required and placeholder is none and not placeholder_in_choices and not multiple -%}
+    {%- if required and placeholder is none and not placeholder_in_choices and not multiple and (attr.size is not defined or attr.size <= 1) -%}
         {% set required = false %}
     {%- endif -%}
     <select {{ block('widget_attributes') }}{% if multiple %} multiple="multiple"{% endif %}>
@@ -74,12 +74,12 @@
 {%- block choice_widget_options -%}
     {% for group_label, choice in options %}
         {%- if choice is iterable -%}
-            <optgroup label="{{ group_label|trans({}, translation_domain) }}">
+            <optgroup label="{{ choice_translation_domain is same as(false) ? group_label : group_label|trans({}, choice_translation_domain) }}">
                 {% set options = choice %}
                 {{- block('choice_widget_options') -}}
             </optgroup>
         {%- else -%}
-            <option value="{{ choice.value }}"{% if choice is selectedchoice(value) %} selected="selected"{% endif %}>{{ choice.label|trans({}, translation_domain) }}</option>
+            <option value="{{ choice.value }}"{% if choice.attr %} {% set attr = choice.attr %}{{ block('attributes') }}{% endif %}{% if choice is selectedchoice(value) %} selected="selected"{% endif %}>{{ choice_translation_domain is same as(false) ? choice.label : choice.label|trans({}, choice_translation_domain) }}</option>
         {%- endif -%}
     {% endfor %}
 {%- endblock choice_widget_options -%}
@@ -202,13 +202,13 @@
 {# Labels #}
 
 {%- block form_label -%}
-    {% if label is not sameas(false) -%}
+    {% if label is not same as(false) -%}
         {% if not compound -%}
             {% set label_attr = label_attr|merge({'for': id}) %}
-        {%- endif %}
+        {%- endif -%}
         {% if required -%}
             {% set label_attr = label_attr|merge({'class': (label_attr.class|default('') ~ ' required')|trim}) %}
-        {%- endif %}
+        {%- endif -%}
         {% if label is empty -%}
             {%- if label_format is not empty -%}
                 {% set label = label_format|replace({
@@ -219,7 +219,7 @@
                 {% set label = name|humanize %}
             {%- endif -%}
         {%- endif -%}
-        <label{% for attrname, attrvalue in label_attr %} {{ attrname }}="{{ attrvalue }}"{% endfor %}>{{ label|trans({}, translation_domain) }}</label>
+        <label{% for attrname, attrvalue in label_attr %} {{ attrname }}="{{ attrvalue }}"{% endfor %}>{{ translation_domain is same as(false) ? label : label|trans({}, translation_domain) }}</label>
     {%- endif -%}
 {%- endblock form_label -%}
 
@@ -316,13 +316,13 @@
     {%- if read_only %} readonly="readonly"{% endif -%}
     {%- if disabled %} disabled="disabled"{% endif -%}
     {%- if required %} required="required"{% endif -%}
-    {%- for attrname, attrvalue in attr -%}
+    {%- for attrname, attrvalue in attr if 'readonly' != attrname or not read_only -%}
         {{- " " -}}
         {%- if attrname in ['placeholder', 'title'] -%}
             {{- attrname }}="{{ attrvalue|trans({}, translation_domain) }}"
-        {%- elseif attrvalue is sameas(true) -%}
+        {%- elseif attrvalue is same as(true) -%}
             {{- attrname }}="{{ attrname }}"
-        {%- elseif attrvalue is not sameas(false) -%}
+        {%- elseif attrvalue is not same as(false) -%}
             {{- attrname }}="{{ attrvalue }}"
         {%- endif -%}
     {%- endfor -%}
@@ -334,9 +334,9 @@
         {{- " " -}}
         {%- if attrname in ['placeholder', 'title'] -%}
             {{- attrname }}="{{ attrvalue|trans({}, translation_domain) }}"
-        {%- elseif attrvalue is sameas(true) -%}
+        {%- elseif attrvalue is same as(true) -%}
             {{- attrname }}="{{ attrname }}"
-        {%- elseif attrvalue is not sameas(false) -%}
+        {%- elseif attrvalue is not same as(false) -%}
             {{- attrname }}="{{ attrvalue }}"
         {%- endif -%}
     {%- endfor -%}
@@ -348,10 +348,23 @@
         {{- " " -}}
         {%- if attrname in ['placeholder', 'title'] -%}
             {{- attrname }}="{{ attrvalue|trans({}, translation_domain) }}"
-        {%- elseif attrvalue is sameas(true) -%}
+        {%- elseif attrvalue is same as(true) -%}
             {{- attrname }}="{{ attrname }}"
-        {%- elseif attrvalue is not sameas(false) -%}
+        {%- elseif attrvalue is not same as(false) -%}
             {{- attrname }}="{{ attrvalue }}"
         {%- endif -%}
     {%- endfor -%}
 {%- endblock button_attributes -%}
+
+{% block attributes -%}
+    {%- for attrname, attrvalue in attr -%}
+        {{- " " -}}
+        {%- if attrname in ['placeholder', 'title'] -%}
+            {{- attrname }}="{{ attrvalue|trans({}, translation_domain) }}"
+        {%- elseif attrvalue is same as(true) -%}
+            {{- attrname }}="{{ attrname }}"
+        {%- elseif attrvalue is not same as(false) -%}
+            {{- attrname }}="{{ attrvalue }}"
+        {%- endif -%}
+    {%- endfor -%}
+{%- endblock attributes -%}

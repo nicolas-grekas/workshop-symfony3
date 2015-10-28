@@ -1,6 +1,31 @@
 CHANGELOG
 =========
 
+2.7.0
+-----
+
+ * added option "choice_translation_domain" to ChoiceType.
+ * deprecated option "precision" in favor of "scale"
+ * deprecated the overwriting of AbstractType::setDefaultOptions() in favor of overwriting AbstractType::configureOptions().
+ * deprecated the overwriting of AbstractTypeExtension::setDefaultOptions() in favor of overwriting AbstractTypeExtension::configureOptions().
+ * added new ChoiceList interface and implementations in the Symfony\Component\Form\ChoiceList namespace
+ * added new ChoiceView in the Symfony\Component\Form\ChoiceList\View namespace
+ * choice groups are now represented by ChoiceGroupView objects in the view
+ * deprecated the old ChoiceList interface and implementations
+ * deprecated the old ChoiceView class
+ * added CheckboxListMapper and RadioListMapper
+ * deprecated ChoiceToBooleanArrayTransformer and ChoicesToBooleanArrayTransformer
+ * deprecated FixCheckboxInputListener and FixRadioInputListener
+ * deprecated the "choice_list" option of ChoiceType
+ * added new options to ChoiceType:
+   * "choices_as_values"
+   * "choice_loader"
+   * "choice_label"
+   * "choice_name"
+   * "choice_value"
+   * "choice_attr"
+   * "group_by"
+
 2.6.2
 -----
 
@@ -37,7 +62,7 @@ CHANGELOG
 
  * moved CSRF implementation to the new Security CSRF sub-component
  * deprecated CsrfProviderInterface and its implementations
- * deprecated options "csrf_provider" and "intention" in favor of the new options "csrf_token_generator" and "csrf_token_id"
+ * deprecated options "csrf_provider" and "intention" in favor of the new options "csrf_token_manager" and "csrf_token_id"
 
 2.3.0
 -----

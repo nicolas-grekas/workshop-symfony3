@@ -18,7 +18,6 @@ use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\Extension\Validator\Constraints\Form;
 use Symfony\Component\Form\Extension\Validator\Constraints\FormValidator;
 use Symfony\Component\Form\SubmitButtonBuilder;
-use Symfony\Component\Validator\Context\ExecutionContextInterface;
 use Symfony\Component\Validator\Constraints\NotNull;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Tests\Constraints\AbstractConstraintValidatorTest;
@@ -130,6 +129,19 @@ class FormValidatorTest extends AbstractConstraintValidatorTest
         $this->assertNoViolation();
     }
 
+    public function testMissingConstraintIndex()
+    {
+        $object = new \stdClass();
+        $form = new FormBuilder('name', '\stdClass', $this->dispatcher, $this->factory);
+        $form = $form->setData($object)->getForm();
+
+        $this->expectValidateAt(0, 'data', $object, 'Default');
+
+        $this->validator->validate($form, new Form());
+
+        $this->assertNoViolation();
+    }
+
     public function testValidateConstraintsEvenIfNoCascadeValidation()
     {
         $object = $this->getMock('\stdClass');
@@ -230,7 +242,7 @@ class FormValidatorTest extends AbstractConstraintValidatorTest
             ->setParameter('{{ foo }}', 'bar')
             ->setInvalidValue('foo')
             ->setCode(Form::NOT_SYNCHRONIZED_ERROR)
-            ->setCause($this->context instanceof ExecutionContextInterface ? $form->getTransformationFailure() : null)
+            ->setCause($form->getTransformationFailure())
             ->assertRaised();
     }
 
@@ -265,7 +277,7 @@ class FormValidatorTest extends AbstractConstraintValidatorTest
             ->setParameter('{{ foo }}', 'bar')
             ->setInvalidValue('foo')
             ->setCode(Form::NOT_SYNCHRONIZED_ERROR)
-            ->setCause($this->context instanceof ExecutionContextInterface ? $form->getTransformationFailure() : null)
+            ->setCause($form->getTransformationFailure())
             ->assertRaised();
     }
 
@@ -299,7 +311,7 @@ class FormValidatorTest extends AbstractConstraintValidatorTest
             ->setParameter('{{ value }}', 'foo')
             ->setInvalidValue('foo')
             ->setCode(Form::NOT_SYNCHRONIZED_ERROR)
-            ->setCause($this->context instanceof ExecutionContextInterface ? $form->getTransformationFailure() : null)
+            ->setCause($form->getTransformationFailure())
             ->assertRaised();
     }
 
@@ -570,7 +582,7 @@ class FormValidatorTest extends AbstractConstraintValidatorTest
             ->add($this->getBuilder('child'))
             ->getForm();
 
-        $form->bind(array('foo' => 'bar'));
+        $form->submit(array('foo' => 'bar'));
 
         $context->expects($this->never())
             ->method('addViolation');

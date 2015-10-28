@@ -14,18 +14,22 @@ namespace Liip\FunctionalTestBundle\Test;
 /**
  * @author Daniel Barsotti
  *
- * The on-line validator: http://validator.nu/
- * The documentation: http://about.validator.nu/
- * Documentation about the web service: http://wiki.whatwg.org/wiki/Validator.nu_Web_Service_Interface
+ * The on-line validator: https://validator.nu/
+ * The documentation: https://about.validator.nu/
+ * Documentation about the web service: https://github.com/validator/validator/wiki/Service:-HTTP-interface
  */
 abstract class Html5WebTestCase extends WebTestCase
 {
+    // <title> can't be empty:
+    //
+    // HTML5 validation failed:
+    //  Line 5: Element “title” must not be empty.
     protected $html5Wrapper = <<<'HTML'
 <!DOCTYPE html>
 <html>
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title></title>
+    <title>HTML5</title>
 </head>
 <body>
 <<CONTENT>>
@@ -35,7 +39,6 @@ HTML;
 
     protected $validationServiceAvailable = false;
 
-
     public function __construct($name = null, array $data = array(), $dataName = '')
     {
         parent::__construct($name, $data, $dataName);
@@ -44,10 +47,10 @@ HTML;
     }
 
     /**
-     * Check if the HTML5 validation service is available
+     * Check if the HTML5 validation service is available.
      */
-    public function isValidationServiceAvailable() {
-
+    public function isValidationServiceAvailable()
+    {
         $validationUrl = $this->getHtml5ValidatorServiceUrl();
 
         $ch = curl_init();
@@ -60,8 +63,14 @@ HTML;
         return $res !== false;
     }
 
+    public function getValidationServiceAvailable()
+    {
+        return $this->validationServiceAvailable;
+    }
+
     /**
-     * Get the URL of the HTML5 validation service from the config
+     * Get the URL of the HTML5 validation service from the config.
+     *
      * @return string
      */
     protected function getHtml5ValidatorServiceUrl()
@@ -73,6 +82,7 @@ HTML;
      * Allows a subclass to set a custom HTML5 wrapper to test validity of HTML snippets.
      * The $wrapper may contain valid HTML5 code + the <<CONTENT>> placeholder.
      * This placeholder will be replaced by the tested snippet before validation.
+     *
      * @param string $wrapper The custom HTML5 wrapper.
      */
     protected function setHtml5Wrapper($wrapper)
@@ -81,9 +91,11 @@ HTML;
     }
 
     /**
-     * Run the HTML5 validation on the content and returns the results as an array
+     * Run the HTML5 validation on the content and returns the results as an array.
+     *
      * @param string $content The HTML content to validate
-     * @return array
+     *
+     * @return array|false
      */
     public function validateHtml5($content)
     {
@@ -127,12 +139,14 @@ HTML;
      */
     public function assertIsValidHtml5($content, $message = '')
     {
-        if (!$this->validationServiceAvailable) {
+        if (!$this->getValidationServiceAvailable()) {
             return $this->skipTestWithInvalidService();
         }
 
         $res = $this->validateHtml5($content);
-        if (false === $res->messages) {
+        // json_decode returned null if the validator service didn't
+        // return JSON
+        if ((null === $res) || (false === $res) || (false === $res->messages)) {
             return $this->skipTestWithInvalidService();
         }
 
@@ -163,7 +177,7 @@ HTML;
                     }
                 }
 
-                $err_count++;
+                ++$err_count;
                 if (empty($row->message)) {
                     $err_msg .= "  Line {$row->lastLine}: Empty error message about {$row->extract}\n";
                 } else {
@@ -188,7 +202,7 @@ HTML;
     }
 
     /**
-     * Marks test as skipped with validation server error message
+     * Marks test as skipped with validation server error message.
      */
     protected function skipTestWithInvalidService()
     {

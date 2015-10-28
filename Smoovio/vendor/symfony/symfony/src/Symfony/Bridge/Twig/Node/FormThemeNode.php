@@ -16,7 +16,7 @@ namespace Symfony\Bridge\Twig\Node;
  */
 class FormThemeNode extends \Twig_Node
 {
-    public function __construct(\Twig_NodeInterface $form, \Twig_NodeInterface $resources, $lineno, $tag = null)
+    public function __construct(\Twig_Node $form, \Twig_Node $resources, $lineno, $tag = null)
     {
         parent::__construct(array('form' => $form, 'resources' => $resources), array(), $lineno, $tag);
     }
@@ -30,7 +30,7 @@ class FormThemeNode extends \Twig_Node
     {
         $compiler
             ->addDebugInfo($this)
-            ->write('$this->env->getExtension(\'form\')->renderer->setTheme(')
+            ->write('$this->env->getExtension(\'Symfony\Bridge\Twig\Extension\FormExtension\')->renderer->setTheme(')
             ->subcompile($this->getNode('form'))
             ->raw(', ')
             ->subcompile($this->getNode('resources'))

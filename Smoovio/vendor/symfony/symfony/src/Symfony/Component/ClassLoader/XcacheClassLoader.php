@@ -45,8 +45,6 @@ namespace Symfony\Component\ClassLoader;
  * @author Fabien Potencier <fabien@symfony.com>
  * @author Kris Wallsmith <kris@symfony.com>
  * @author Kim Hemsø Rasmussen <kimhemsoe@gmail.com>
- *
- * @api
  */
 class XcacheClassLoader
 {
@@ -62,13 +60,11 @@ class XcacheClassLoader
     /**
      * Constructor.
      *
-     * @param string $prefix    The XCache namespace prefix to use.
-     * @param object $decorated A class loader object that implements the findFile() method.
+     * @param string $prefix    The XCache namespace prefix to use
+     * @param object $decorated A class loader object that implements the findFile() method
      *
      * @throws \RuntimeException
      * @throws \InvalidArgumentException
-     *
-     * @api
      */
     public function __construct($prefix, $decorated)
     {
@@ -130,7 +126,7 @@ class XcacheClassLoader
         if (xcache_isset($this->prefix.$class)) {
             $file = xcache_get($this->prefix.$class);
         } else {
-            $file = $this->decorated->findFile($class);
+            $file = $this->decorated->findFile($class) ?: null;
             xcache_set($this->prefix.$class, $file);
         }
 

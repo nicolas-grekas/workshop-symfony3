@@ -11,7 +11,6 @@
 
 namespace Symfony\Component\Form\Tests\Extension\Core\Type;
 
-use Symfony\Component\Form\Form;
 use Symfony\Component\Form\Tests\Fixtures\Author;
 use Symfony\Component\Form\Tests\Fixtures\AuthorType;
 
@@ -273,5 +272,73 @@ class CollectionTypeTest extends \Symfony\Component\Form\Test\TypeTestCase
         ));
 
         $this->assertSame('__test__label__', $form->createView()->vars['prototype']->vars['label']);
+    }
+
+    public function testPrototypeDefaultRequired()
+    {
+        $form = $this->factory->create('collection', array(), array(
+            'type' => 'file',
+            'allow_add' => true,
+            'prototype' => true,
+            'prototype_name' => '__test__',
+        ));
+
+        $this->assertTrue($form->createView()->vars['prototype']->vars['required']);
+    }
+
+    public function testPrototypeSetNotRequired()
+    {
+        $form = $this->factory->create('collection', array(), array(
+            'type' => 'file',
+            'allow_add' => true,
+            'prototype' => true,
+            'prototype_name' => '__test__',
+            'required' => false,
+        ));
+
+        $this->assertFalse($form->createView()->vars['required'], 'collection is not required');
+        $this->assertFalse($form->createView()->vars['prototype']->vars['required'], '"prototype" should not be required');
+    }
+
+    public function testPrototypeSetNotRequiredIfParentNotRequired()
+    {
+        $child = $this->factory->create('collection', array(), array(
+            'type' => 'file',
+            'allow_add' => true,
+            'prototype' => true,
+            'prototype_name' => '__test__',
+        ));
+
+        $parent = $this->factory->create('form', array(), array(
+            'required' => false,
+        ));
+
+        $child->setParent($parent);
+        $this->assertFalse($parent->createView()->vars['required'], 'Parent is not required');
+        $this->assertFalse($child->createView()->vars['required'], 'Child is not required');
+        $this->assertFalse($child->createView()->vars['prototype']->vars['required'], '"Prototype" should not be required');
+    }
+
+    public function testPrototypeNotOverrideRequiredByEntryOptionsInFavorOfParent()
+    {
+        $child = $this->factory->create('collection', array(), array(
+            'type' => 'file',
+            'allow_add' => true,
+            'prototype' => true,
+            'prototype_name' => '__test__',
+            'options' => array(
+                'required' => true,
+            ),
+        ));
+
+        $parent = $this->factory->create('form', array(), array(
+            'required' => false,
+        ));
+
+        $child->setParent($parent);
+
+        $this->assertFalse($parent->createView()->vars['required'], 'Parent is not required');
+        $this->assertFalse($child->createView()->vars['required'], 'Child is not required');
+        $this->assertFalse($child->createView()->vars['prototype']->vars['required'], '"Prototype" should not be required');
     }
 }

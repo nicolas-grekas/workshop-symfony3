@@ -36,7 +36,7 @@ class ChoiceQuestion extends Question
 
         $this->choices = $choices;
         $this->setValidator($this->getDefaultValidator());
-        $this->setAutocompleterValues(array_keys($choices));
+        $this->setAutocompleterValues($choices);
     }
 
     /**
@@ -64,6 +64,16 @@ class ChoiceQuestion extends Question
         $this->setValidator($this->getDefaultValidator());
 
         return $this;
+    }
+
+    /**
+     * Returns whether the choices are multiselect.
+     *
+     * @return bool
+     */
+    public function isMultiselect()
+    {
+        return $this->multiselect;
     }
 
     /**
@@ -117,8 +127,9 @@ class ChoiceQuestion extends Question
         $choices = $this->choices;
         $errorMessage = $this->errorMessage;
         $multiselect = $this->multiselect;
+        $isAssoc = $this->isAssoc($choices);
 
-        return function ($selected) use ($choices, $errorMessage, $multiselect) {
+        return function ($selected) use ($choices, $errorMessage, $multiselect, $isAssoc) {
             // Collapse all spaces.
             $selectedChoices = str_replace(' ', '', $selected);
 
@@ -134,18 +145,41 @@ class ChoiceQuestion extends Question
 
             $multiselectChoices = array();
             foreach ($selectedChoices as $value) {
-                if (empty($choices[$value])) {
+                $results = array();
+                foreach ($choices as $key => $choice) {
+                    if ($choice === $value) {
+                        $results[] = $key;
+                    }
+                }
+
+                if (count($results) > 1) {
+                    throw new \InvalidArgumentException(sprintf('The provided answer is ambiguous. Value should be one of %s.', implode(' or ', $results)));
+                }
+
+                $result = array_search($value, $choices);
+
+                if (!$isAssoc) {
+                    if (false !== $result) {
+                        $result = $choices[$result];
+                    } elseif (isset($choices[$value])) {
+                        $result = $choices[$value];
+                    }
+                } elseif (false === $result && isset($choices[$value])) {
+                    $result = $value;
+                }
+
+                if (false === $result) {
                     throw new \InvalidArgumentException(sprintf($errorMessage, $value));
                 }
 
-                $multiselectChoices[] = $choices[$value];
+                $multiselectChoices[] = (string) $result;
             }
 
             if ($multiselect) {
                 return $multiselectChoices;
             }
 
-            return $choices[$selected];
+            return current($multiselectChoices);
         };
     }
 }

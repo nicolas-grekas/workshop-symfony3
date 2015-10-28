@@ -14,15 +14,16 @@
 
 namespace Doctrine\Bundle\FixturesBundle\Command;
 
-use Symfony\Component\Console\Question\ConfirmationQuestion;
-use Symfony\Component\Console\Input\InputOption;
-use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Bridge\Doctrine\DataFixtures\ContainerAwareLoader as DataFixturesLoader;
 use Doctrine\Bundle\DoctrineBundle\Command\DoctrineCommand;
 use Doctrine\Common\DataFixtures\Executor\ORMExecutor;
 use Doctrine\Common\DataFixtures\Purger\ORMPurger;
+use Doctrine\DBAL\Sharding\PoolingShardConnection;
 use InvalidArgumentException;
+use Symfony\Bridge\Doctrine\DataFixtures\ContainerAwareLoader as DataFixturesLoader;
+use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Output\OutputInterface;
+use Symfony\Component\Console\Question\ConfirmationQuestion;
 
 /**
  * Load data fixtures from bundles.
@@ -40,7 +41,9 @@ class LoadDataFixturesDoctrineCommand extends DoctrineCommand
             ->addOption('fixtures', null, InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'The directory to load data fixtures from.')
             ->addOption('append', null, InputOption::VALUE_NONE, 'Append the data fixtures instead of deleting all data from the database first.')
             ->addOption('em', null, InputOption::VALUE_REQUIRED, 'The entity manager to use for this command.')
+            ->addOption('shard', null, InputOption::VALUE_REQUIRED, 'The shard connection to use for this command.')
             ->addOption('purge-with-truncate', null, InputOption::VALUE_NONE, 'Purge data by using a database-level TRUNCATE statement')
+            ->addOption('multiple-transactions', null, InputOption::VALUE_NONE, 'Use one transaction per fixture file instead of a single transaction for all')
             ->setHelp(<<<EOT
 The <info>doctrine:fixtures:load</info> command loads data fixtures from your bundles:
 
@@ -69,9 +72,17 @@ EOT
         $em = $doctrine->getManager($input->getOption('em'));
 
         if ($input->isInteractive() && !$input->getOption('append')) {
-            if (!$this->askConfirmation($input, $output, '<question>Careful, database will be purged. Do you want to continue Y/N ?</question>', false)) {
+            if (!$this->askConfirmation($input, $output, '<question>Careful, database will be purged. Do you want to continue y/N ?</question>', false)) {
                 return;
             }
+        }
+
+        if ($input->getOption('shard')) {
+            if (!$em->getConnection() instanceof PoolingShardConnection) {
+                throw new \LogicException(sprintf("Connection of EntityManager '%s' must implement shards configuration.", $input->getOption('em')));
+            }
+
+            $em->getConnection()->connect($input->getOption('shard'));
         }
 
         $dirOrFile = $input->getOption('fixtures');
@@ -88,6 +99,8 @@ EOT
         foreach ($paths as $path) {
             if (is_dir($path)) {
                 $loader->loadFromDirectory($path);
+            } elseif (is_file($path)) {
+                $loader->loadFromFile($path);
             }
         }
         $fixtures = $loader->getFixtures();
@@ -102,7 +115,7 @@ EOT
         $executor->setLogger(function ($message) use ($output) {
             $output->writeln(sprintf('  <comment>></comment> <info>%s</info>', $message));
         });
-        $executor->execute($fixtures, $input->getOption('append'));
+        $executor->execute($fixtures, $input->getOption('append'),$input->getOption('multiple-transactions'));
     }
 
     /**

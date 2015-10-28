@@ -12,6 +12,7 @@
 namespace Symfony\Component\Console\Helper;
 
 use Symfony\Component\Console\Input\InputInterface;
+use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Formatter\OutputFormatterStyle;
 use Symfony\Component\Console\Question\Question;
@@ -41,6 +42,10 @@ class QuestionHelper extends Helper
      */
     public function ask(InputInterface $input, OutputInterface $output, Question $question)
     {
+        if ($output instanceof ConsoleOutputInterface) {
+            $output = $output->getErrorOutput();
+        }
+
         if (!$input->isInteractive()) {
             return $question->getDefault();
         }
@@ -77,7 +82,7 @@ class QuestionHelper extends Helper
     }
 
     /**
-     * Returns the helper's input stream
+     * Returns the helper's input stream.
      *
      * @return resource
      */
@@ -109,25 +114,11 @@ class QuestionHelper extends Helper
      */
     public function doAsk(OutputInterface $output, Question $question)
     {
+        $this->writePrompt($output, $question);
+
         $inputStream = $this->inputStream ?: STDIN;
-
-        $message = $question->getQuestion();
-        if ($question instanceof ChoiceQuestion) {
-            $width = max(array_map('strlen', array_keys($question->getChoices())));
-
-            $messages = (array) $question->getQuestion();
-            foreach ($question->getChoices() as $key => $value) {
-                $messages[] = sprintf("  [<info>%-${width}s</info>] %s", $key, $value);
-            }
-
-            $output->writeln($messages);
-
-            $message = $question->getPrompt();
-        }
-
-        $output->write($message);
-
         $autocomplete = $question->getAutocompleterValues();
+
         if (null === $autocomplete || !$this->hasSttyAvailable()) {
             $ret = false;
             if ($question->isHidden()) {
@@ -161,10 +152,55 @@ class QuestionHelper extends Helper
     }
 
     /**
+     * Outputs the question prompt.
+     *
+     * @param OutputInterface $output
+     * @param Question        $question
+     */
+    protected function writePrompt(OutputInterface $output, Question $question)
+    {
+        $message = $question->getQuestion();
+
+        if ($question instanceof ChoiceQuestion) {
+            $maxWidth = max(array_map(array($this, 'strlen'), array_keys($question->getChoices())));
+
+            $messages = (array) $question->getQuestion();
+            foreach ($question->getChoices() as $key => $value) {
+                $width = $maxWidth - $this->strlen($key);
+                $messages[] = '  [<info>'.$key.str_repeat(' ', $width).'</info>] '.$value;
+            }
+
+            $output->writeln($messages);
+
+            $message = $question->getPrompt();
+        }
+
+        $output->write($message);
+    }
+
+    /**
+     * Outputs an error message.
+     *
+     * @param OutputInterface $output
+     * @param \Exception      $error
+     */
+    protected function writeError(OutputInterface $output, \Exception $error)
+    {
+        if (null !== $this->getHelperSet() && $this->getHelperSet()->has('formatter')) {
+            $message = $this->getHelperSet()->get('formatter')->formatBlock($error->getMessage(), 'error');
+        } else {
+            $message = '<error>'.$error->getMessage().'</error>';
+        }
+
+        $output->writeln($message);
+    }
+
+    /**
      * Autocompletes a question.
      *
      * @param OutputInterface $output
      * @param Question        $question
+     * @param resource        $inputStream
      *
      * @return string
      */
@@ -193,7 +229,7 @@ class QuestionHelper extends Helper
             // Backspace Character
             if ("\177" === $c) {
                 if (0 === $numMatches && 0 !== $i) {
-                    $i--;
+                    --$i;
                     // Move cursor backwards
                     $output->write("\033[1D");
                 }
@@ -246,7 +282,7 @@ class QuestionHelper extends Helper
             } else {
                 $output->write($c);
                 $ret .= $c;
-                $i++;
+                ++$i;
 
                 $numMatches = 0;
                 $ofs = 0;
@@ -281,7 +317,8 @@ class QuestionHelper extends Helper
     /**
      * Gets a hidden response from user.
      *
-     * @param OutputInterface $output An Output instance
+     * @param OutputInterface $output      An Output instance
+     * @param resource        $inputStream The handler resource
      *
      * @return string The answer
      *
@@ -355,13 +392,7 @@ class QuestionHelper extends Helper
         $attempts = $question->getMaxAttempts();
         while (null === $attempts || $attempts--) {
             if (null !== $error) {
-                if (null !== $this->getHelperSet() && $this->getHelperSet()->has('formatter')) {
-                    $message = $this->getHelperSet()->get('formatter')->formatBlock($error->getMessage(), 'error');
-                } else {
-                    $message = '<error>'.$error->getMessage().'</error>';
-                }
-
-                $output->writeln($message);
+                $this->writeError($output, $error);
             }
 
             try {

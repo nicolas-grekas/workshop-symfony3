@@ -20,6 +20,8 @@ final class Validation
 {
     /**
      * The Validator API provided by Symfony 2.4 and older.
+     *
+     * @deprecated use API_VERSION_2_5_BC instead.
      */
     const API_VERSION_2_4 = 1;
 
@@ -40,7 +42,7 @@ final class Validation
      * If you want to configure the validator, use
      * {@link createValidatorBuilder()} instead.
      *
-     * @return ValidatorInterface The new validator.
+     * @return ValidatorInterface The new validator
      */
     public static function createValidator()
     {
@@ -50,7 +52,7 @@ final class Validation
     /**
      * Creates a configurable builder for validator objects.
      *
-     * @return ValidatorBuilderInterface The new builder.
+     * @return ValidatorBuilderInterface The new builder
      */
     public static function createValidatorBuilder()
     {
