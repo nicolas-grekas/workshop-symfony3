@@ -287,24 +287,6 @@ class ProcessTest extends \PHPUnit_Framework_TestCase
         );
     }
 
-    /**
-     * @dataProvider provideLegacyInputValues
-     * @group legacy
-     */
-    public function testLegacyValidInput($expected, $value)
-    {
-        $process = $this->getProcess(self::$phpBin.' -v');
-        $process->setInput($value);
-        $this->assertSame($expected, $process->getInput());
-    }
-
-    public function provideLegacyInputValues()
-    {
-        return array(
-            array('stringifiable', new Stringifiable()),
-        );
-    }
-
     public function chainedCommandsOutputProvider()
     {
         if ('\\' === DIRECTORY_SEPARATOR) {
@@ -943,7 +925,7 @@ class ProcessTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider provideMethodsThatNeedATerminatedProcess
-     * @expectedException \Symfony\Component\Process\Exception\LogicException
+     * @expectedException Symfony\Component\Process\Exception\LogicException
      * @expectedExceptionMessage Process must be terminated before calling
      */
     public function testMethodsThatNeedATerminatedProcess($method)
@@ -1252,14 +1234,6 @@ class ProcessTest extends \PHPUnit_Framework_TestCase
                 $this->setExpectedException('Symfony\Component\Process\Exception\RuntimeException', 'This PHP has been compiled with --enable-sigchild.');
             }
         }
-    }
-}
-
-class Stringifiable
-{
-    public function __toString()
-    {
-        return 'stringifiable';
     }
 }
 

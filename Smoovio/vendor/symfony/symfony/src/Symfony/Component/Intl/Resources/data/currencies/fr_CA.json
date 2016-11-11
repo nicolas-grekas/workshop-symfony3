@@ -1,5 +1,5 @@
 {
-    "Version": "2.1.24.13",
+    "Version": "2.1.13.23",
     "Names": {
         "ARS": [
             "ARS",
@@ -65,6 +65,10 @@
             "ILS",
             "nouveau shekel israélien"
         ],
+        "INR": [
+            "INR",
+            "roupie indienne"
+        ],
         "JPY": [
             "¥",
             "yen japonais"
@@ -97,13 +101,9 @@
             "$ SG",
             "dollar de Singapour"
         ],
-        "SRD": [
-            "SRD",
-            "dollar surinamais"
-        ],
-        "TOP": [
-            "TOP",
-            "pa’anga"
+        "THB": [
+            "THB",
+            "baht thaïlandais"
         ],
         "TTD": [
             "TTD",

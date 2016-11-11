@@ -129,9 +129,6 @@ abstract class Constraint
             unset($options['value']);
         }
 
-        if (is_array($options)) {
-            reset($options);
-        }
         if (is_array($options) && count($options) > 0 && is_string(key($options))) {
             foreach ($options as $option => $value) {
                 if (array_key_exists($option, $knownOptions)) {

@@ -13,7 +13,6 @@ namespace Symfony\Bundle\FrameworkBundle\DependencyInjection\Compiler;
 
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
-use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
 
 class AddConstraintValidatorsPass implements CompilerPassInterface
 {
@@ -29,17 +28,7 @@ class AddConstraintValidatorsPass implements CompilerPassInterface
                 $validators[$attributes[0]['alias']] = $id;
             }
 
-            $definition = $container->getDefinition($id);
-
-            if (!$definition->isPublic()) {
-                throw new InvalidArgumentException(sprintf('The service "%s" must be public as it can be lazy-loaded.', $id));
-            }
-
-            if ($definition->isAbstract()) {
-                throw new InvalidArgumentException(sprintf('The service "%s" must not be abstract as it can be lazy-loaded.', $id));
-            }
-
-            $validators[$definition->getClass()] = $id;
+            $validators[$container->getDefinition($id)->getClass()] = $id;
         }
 
         $container->getDefinition('validator.validator_factory')->replaceArgument(1, $validators);

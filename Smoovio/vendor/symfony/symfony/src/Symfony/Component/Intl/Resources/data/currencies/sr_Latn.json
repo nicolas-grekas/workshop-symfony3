@@ -1,5 +1,5 @@
 {
-    "Version": "2.1.24.17",
+    "Version": "2.1.13.24",
     "Names": {
         "ADP": [
             "ADP",
@@ -131,7 +131,7 @@
         ],
         "BOB": [
             "BOB",
-            "Bolivijski bolivijano"
+            "Bolivijski Boliviano"
         ],
         "BOP": [
             "BOP",
@@ -323,7 +323,7 @@
         ],
         "ETB": [
             "ETB",
-            "Etiopski bir"
+            "Etiopijski bir"
         ],
         "EUR": [
             "€",
@@ -587,7 +587,7 @@
         ],
         "MGA": [
             "MGA",
-            "Madagaskarski ariari"
+            "Malagasijski ariari"
         ],
         "MGF": [
             "MGF",
@@ -611,7 +611,7 @@
         ],
         "MOP": [
             "MOP",
-            "Makaoska pataka"
+            "Makaniška pataka"
         ],
         "MRO": [
             "MRO",
@@ -651,7 +651,7 @@
         ],
         "MYR": [
             "MYR",
-            "Malezijski ringit"
+            "Malezijski ringgit"
         ],
         "MZE": [
             "MZE",
@@ -663,7 +663,7 @@
         ],
         "MZN": [
             "MZN",
-            "Mozambički metikal"
+            "Mozambijski metikal"
         ],
         "NAD": [
             "NAD",
@@ -711,7 +711,7 @@
         ],
         "PEN": [
             "PEN",
-            "Peruanski novi sol"
+            "Peruanski nuevo sol"
         ],
         "PES": [
             "PES",
@@ -823,7 +823,7 @@
         ],
         "SLL": [
             "SLL",
-            "Sijeraleonski leone"
+            "Sijera-leonški leone"
         ],
         "SOS": [
             "SOS",
@@ -843,7 +843,7 @@
         ],
         "STD": [
             "STD",
-            "Saotomska dobra"
+            "Sao Tome i Principe dobra"
         ],
         "SUR": [
             "SUR",
@@ -859,7 +859,7 @@
         ],
         "SZL": [
             "SZL",
-            "Svazilendski lilangeni"
+            "Svazi lilangeni"
         ],
         "THB": [
             "THB",
@@ -887,7 +887,7 @@
         ],
         "TOP": [
             "TOP",
-            "Tonganska panga"
+            "Tongonška Panga"
         ],
         "TPE": [
             "TPE",
@@ -915,7 +915,7 @@
         ],
         "UAH": [
             "UAH",
-            "Ukrajinska hrivnja"
+            "Ukrajinska grivna"
         ],
         "UAK": [
             "UAK",
@@ -1039,7 +1039,7 @@
         ],
         "ZAR": [
             "ZAR",
-            "Južnoafrički rand"
+            "Južno-afrički rand"
         ],
         "ZMK": [
             "ZMK",

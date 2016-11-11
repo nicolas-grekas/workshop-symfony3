@@ -11,13 +11,15 @@
 
 namespace Symfony\Component\VarDumper\Tests\Caster;
 
-use Symfony\Component\VarDumper\Test\VarDumperTestCase;
+use Symfony\Component\VarDumper\Test\VarDumperTestTrait;
 
 /**
  * @author Grégoire Pineau <lyrixx@lyrixx.info>
  */
-class SplCasterTest extends VarDumperTestCase
+class SplCasterTest extends \PHPUnit_Framework_TestCase
 {
+    use VarDumperTestTrait;
+
     public function getCastFileInfoTests()
     {
         return array(
@@ -94,10 +96,10 @@ SplFileObject {
   file: true
   dir: false
   link: false
-%AcsvControl: array:%d [
+%AcsvControl: array:2 [
     0 => ","
     1 => """
-%A]
+  ]
   flags: DROP_NEW_LINE|SKIP_EMPTY
   maxLineLen: 0
   fstat: array:26 [

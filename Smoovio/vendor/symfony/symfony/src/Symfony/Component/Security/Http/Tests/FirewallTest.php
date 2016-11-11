@@ -11,10 +11,9 @@
 
 namespace Symfony\Component\Security\Http\Tests;
 
-use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Security\Http\Firewall;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
-use Symfony\Component\Security\Http\Firewall;
 
 class FirewallTest extends \PHPUnit_Framework_TestCase
 {
@@ -47,7 +46,7 @@ class FirewallTest extends \PHPUnit_Framework_TestCase
 
     public function testOnKernelRequestStopsWhenThereIsAResponse()
     {
-        $response = new Response();
+        $response = $this->getMock('Symfony\Component\HttpFoundation\Response');
 
         $first = $this->getMock('Symfony\Component\Security\Http\Firewall\ListenerInterface');
         $first

@@ -65,17 +65,9 @@ class RoleHierarchy implements RoleHierarchyInterface
                 }
 
                 $visited[] = $role;
-
-                foreach ($this->hierarchy[$role] as $roleToAdd) {
-                    $this->map[$main][] = $roleToAdd;
-                }
-
-                foreach (array_diff($this->hierarchy[$role], $visited) as $additionalRole) {
-                    $additionalRoles[] = $additionalRole;
-                }
+                $this->map[$main] = array_unique(array_merge($this->map[$main], $this->hierarchy[$role]));
+                $additionalRoles = array_merge($additionalRoles, array_diff($this->hierarchy[$role], $visited));
             }
-
-            $this->map[$main] = array_unique($this->map[$main]);
         }
     }
 }

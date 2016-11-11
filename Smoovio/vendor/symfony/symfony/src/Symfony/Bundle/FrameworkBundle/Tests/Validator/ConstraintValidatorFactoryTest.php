@@ -62,19 +62,4 @@ class ConstraintValidatorFactoryTest extends \PHPUnit_Framework_TestCase
         $factory = new ConstraintValidatorFactory($container, array('validator_constraint_alias' => 'validator_constraint_service'));
         $this->assertSame($validator, $factory->getInstance($constraint));
     }
-
-    /**
-     * @expectedException \Symfony\Component\Validator\Exception\ValidatorException
-     */
-    public function testGetInstanceInvalidValidatorClass()
-    {
-        $constraint = $this->getMock('Symfony\\Component\\Validator\\Constraint');
-        $constraint
-            ->expects($this->once())
-            ->method('validatedBy')
-            ->will($this->returnValue('Fully\\Qualified\\ConstraintValidator\\Class\\Name'));
-
-        $factory = new ConstraintValidatorFactory(new Container());
-        $factory->getInstance($constraint);
-    }
 }

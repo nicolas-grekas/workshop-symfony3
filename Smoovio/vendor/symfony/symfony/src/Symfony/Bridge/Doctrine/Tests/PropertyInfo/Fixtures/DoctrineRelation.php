@@ -31,5 +31,5 @@ class DoctrineRelation
     /**
      * @Column(type="guid")
      */
-    protected $rguid;
+    protected $guid;
 }

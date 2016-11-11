@@ -17,15 +17,9 @@ html{font-family:sans-serif;-webkit-text-size-adjust:100%;-ms-text-size-adjust:1
 
 {# Basic styles
    ========================================================================= #}
-html, body  {
-    height: 100%;
-    width: 100%;
-}
 body {
     background-color: #F9F9F9;
     color: #222;
-    display: flex;
-    flex-direction: column;
     {{ mixins.sans_serif_font|raw }}
     font-size: 14px;
     line-height: 1.4;
@@ -133,7 +127,6 @@ button {
     outline: none;
     border: 0;
     padding: 0;
-    cursor: pointer;
 }
 .btn-link:hover {
     text-decoration: underline;
@@ -408,34 +401,16 @@ tr.status-warning td {
     max-width: 1300px;
     padding-right: 15px;
 }
-#header {
-    flex: 0 0 auto;
-}
-#header .container {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-}
-#summary {
-    flex: 0 0 auto;
-}
 #content {
-    height: 100%;
-}
-#main {
-    display: flex;
-    flex-direction: row-reverse;
-    min-height: 100%;
-}
-#sidebar {
-    flex: 0 0 220px;
+    min-height: 1024px;
+    overflow: hidden;
 }
 #collector-wrapper {
-    flex: 0 1 100%;
-    min-width: 0;
+    float: left;
+    width: 100%;
 }
 #collector-content {
-    margin: 0 0 30px 0;
+    margin: 0 0 30px 220px;
     padding: 14px 0 14px 20px;
 }
 
@@ -453,6 +428,7 @@ tr.status-warning td {
     color: #FFF;
     font-weight: normal;
     font-size: 21px;
+    float: left;
     margin: 0;
     padding: 10px 10px 8px;
 }
@@ -469,6 +445,7 @@ tr.status-warning td {
     fill: #FFF;
 }
 #header .search {
+    float: right;
     padding-top: 11px;
 }
 #header .search input {
@@ -534,7 +511,10 @@ tr.status-warning td {
 #sidebar {
     background: #444;
     color: #CCC;
-    padding-bottom: 30px;
+    float: left;
+    margin-bottom: -99999px; {# needed for 'same-height columns' trick #}
+    margin-left: -100%;
+    padding-bottom: 99999px; {# needed for 'same-height columns' trick #}
     position: relative;
     width: 220px;
     z-index: 9999;
@@ -617,6 +597,7 @@ tr.status-warning td {
 #menu-profiler li {
     position: relative;
     margin-bottom: 0;
+    width: 220px;
 }
 #menu-profiler li a {
     border: solid transparent;
@@ -941,13 +922,17 @@ table.logs .sf-call-stack abbr {
 }
 
 @media (max-width: 768px) {
+    #collector-content {
+        margin-left: 50px;
+    }
+
     #sidebar {
-        flex-basis: 50px;
-        overflow-x: hidden;
-        transition: flex-basis 200ms ease-out;
+        width: 50px;
+        overflow-y: hidden;
+        transition: width 200ms ease-out;
     }
     #sidebar:hover, #sidebar.expanded {
-        flex-basis: 220px;
+        width: 220px;
     }
 
     #sidebar-search {

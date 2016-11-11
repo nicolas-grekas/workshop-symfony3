@@ -76,7 +76,7 @@ class Cookie
                 throw new \UnexpectedValueException(sprintf('The cookie expiration time "%s" is not valid.', $expires));
             }
 
-            $this->expires = $timestampAsDateTime->format('U');
+            $this->expires = $timestampAsDateTime->getTimestamp();
         }
     }
 
@@ -205,13 +205,13 @@ class Cookie
 
         foreach (self::$dateFormats as $dateFormat) {
             if (false !== $date = \DateTime::createFromFormat($dateFormat, $dateValue, new \DateTimeZone('GMT'))) {
-                return $date->format('U');
+                return $date->getTimestamp();
             }
         }
 
         // attempt a fallback for unusual formatting
         if (false !== $date = date_create($dateValue, new \DateTimeZone('GMT'))) {
-            return $date->format('U');
+            return $date->getTimestamp();
         }
 
         throw new \InvalidArgumentException(sprintf('Could not parse date "%s".', $dateValue));
@@ -304,6 +304,6 @@ class Cookie
      */
     public function isExpired()
     {
-        return null !== $this->expires && 0 != $this->expires && $this->expires < time();
+        return null !== $this->expires && 0 !== $this->expires && $this->expires < time();
     }
 }

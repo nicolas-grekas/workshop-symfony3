@@ -15,10 +15,8 @@ use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Exception\ParameterNotFoundException;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\DependencyInjection\Parameter;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBag;
-use Symfony\Component\DependencyInjection\Scope;
 
 /**
  * GraphvizDumper dumps a service container as a graphviz file.
@@ -130,7 +128,7 @@ class GraphvizDumper extends Dumper
      *
      * @return array An array of edges
      */
-    private function findEdges($id, array $arguments, $required, $name)
+    private function findEdges($id, $arguments, $required, $name)
     {
         $edges = array();
         foreach ($arguments as $argument) {
@@ -177,7 +175,7 @@ class GraphvizDumper extends Dumper
             } catch (ParameterNotFoundException $e) {
             }
 
-            $nodes[$id] = array('class' => str_replace('\\', '\\\\', $class), 'attributes' => array_merge($this->options['node.definition'], array('style' => $definition->isShared() && ContainerInterface::SCOPE_PROTOTYPE !== $definition->getScope(false) ? 'filled' : 'dotted')));
+            $nodes[$id] = array('class' => str_replace('\\', '\\\\', $class), 'attributes' => array_merge($this->options['node.definition'], array('style' => $definition->isShared() ? 'filled' : 'dotted')));
             $container->setDefinition($id, new Definition('stdClass'));
         }
 
@@ -205,9 +203,6 @@ class GraphvizDumper extends Dumper
         $container->setDefinitions($this->container->getDefinitions());
         $container->setAliases($this->container->getAliases());
         $container->setResources($this->container->getResources());
-        foreach ($this->container->getScopes(false) as $scope => $parentScope) {
-            $container->addScope(new Scope($scope, $parentScope));
-        }
         foreach ($this->container->getExtensions() as $extension) {
             $container->registerExtension($extension);
         }
@@ -246,7 +241,7 @@ class GraphvizDumper extends Dumper
      *
      * @return string A comma separated list of attributes
      */
-    private function addAttributes(array $attributes)
+    private function addAttributes($attributes)
     {
         $code = array();
         foreach ($attributes as $k => $v) {
@@ -263,7 +258,7 @@ class GraphvizDumper extends Dumper
      *
      * @return string A space separated list of options
      */
-    private function addOptions(array $options)
+    private function addOptions($options)
     {
         $code = array();
         foreach ($options as $k => $v) {

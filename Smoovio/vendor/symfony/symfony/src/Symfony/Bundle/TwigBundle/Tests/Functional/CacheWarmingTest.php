@@ -28,10 +28,10 @@ class NewCacheWamingTest extends \PHPUnit_Framework_TestCase
         $warmer->enableOptionalWarmers();
         $warmer->warmUp($kernel->getCacheDir());
 
-        $this->assertFileExists($kernel->getCacheDir().'/twig');
+        $this->assertTrue(file_exists($kernel->getCacheDir().'/twig'));
     }
 
-    public function testCacheIsProperlyWarmedWhenTemplatingIsDisabled()
+    public function testCacheIsNotWarmedWhenTemplatingIsDisabled()
     {
         $kernel = new CacheWarmingKernel(false);
         $kernel->boot();
@@ -40,7 +40,7 @@ class NewCacheWamingTest extends \PHPUnit_Framework_TestCase
         $warmer->enableOptionalWarmers();
         $warmer->warmUp($kernel->getCacheDir());
 
-        $this->assertFileExists($kernel->getCacheDir().'/twig');
+        $this->assertFalse(file_exists($kernel->getCacheDir().'/twig'));
     }
 
     protected function setUp()
@@ -72,7 +72,7 @@ class CacheWarmingKernel extends Kernel
     {
         $this->withTemplating = $withTemplating;
 
-        parent::__construct(($withTemplating ? 'with' : 'without').'_templating', true);
+        parent::__construct('dev', true);
     }
 
     public function getName()
@@ -106,7 +106,7 @@ class CacheWarmingKernel extends Kernel
 
     public function getCacheDir()
     {
-        return sys_get_temp_dir().'/'.Kernel::VERSION.'/CacheWarmingKernel/cache/'.$this->environment;
+        return sys_get_temp_dir().'/'.Kernel::VERSION.'/CacheWarmingKernel/cache';
     }
 
     public function getLogDir()

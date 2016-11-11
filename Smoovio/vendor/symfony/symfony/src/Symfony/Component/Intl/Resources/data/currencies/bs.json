@@ -1,5 +1,5 @@
 {
-    "Version": "2.1.23.7",
+    "Version": "2.1.13.46",
     "Names": {
         "ADP": [
             "ADP",
@@ -979,7 +979,7 @@
         ],
         "UZS": [
             "UZS",
-            "uzbekistanski som"
+            "Uzbekistanski som"
         ],
         "VEB": [
             "VEB",
@@ -1007,7 +1007,7 @@
         ],
         "XAF": [
             "FCFA",
-            "centralnoafrički franak CFA"
+            "CFA franak BEAC"
         ],
         "XCD": [
             "XCD",
@@ -1027,7 +1027,7 @@
         ],
         "XOF": [
             "CFA",
-            "zapadnoafrički franak CFA"
+            "CFA franak BCEAO"
         ],
         "XPF": [
             "XPF",

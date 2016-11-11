@@ -1,3 +1,4 @@
+id="<?php echo $view->escape($id) ?>" name="<?php echo $view->escape($full_name) ?>"
 <?php if ($disabled): ?>disabled="disabled" <?php endif ?>
 <?php foreach ($choice_attr as $k => $v): ?>
 <?php if ($v === true): ?>

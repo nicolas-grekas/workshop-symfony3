@@ -1,5 +1,5 @@
 {
-    "Version": "2.1.22.93",
+    "Version": "2.1.12.94",
     "Names": {
         "ADP": [
             "ADP",
@@ -384,7 +384,7 @@
         ],
         "GBP": [
             "£",
-            "lliura esterlina britànica"
+            "lliura britànica"
         ],
         "GEK": [
             "GEK",
@@ -1059,7 +1059,7 @@
             "franc UIC francès"
         ],
         "XOF": [
-            "CFA",
+            "XOF",
             "franc CFA BCEAO"
         ],
         "XPF": [

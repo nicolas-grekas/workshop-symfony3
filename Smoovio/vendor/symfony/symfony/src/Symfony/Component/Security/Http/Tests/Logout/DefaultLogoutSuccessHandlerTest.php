@@ -11,7 +11,6 @@
 
 namespace Symfony\Component\Security\Http\Tests\Logout;
 
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Http\Logout\DefaultLogoutSuccessHandler;
 
 class DefaultLogoutSuccessHandlerTest extends \PHPUnit_Framework_TestCase
@@ -19,7 +18,7 @@ class DefaultLogoutSuccessHandlerTest extends \PHPUnit_Framework_TestCase
     public function testLogout()
     {
         $request = $this->getMock('Symfony\Component\HttpFoundation\Request');
-        $response = new Response();
+        $response = $this->getMock('Symfony\Component\HttpFoundation\Response');
 
         $httpUtils = $this->getMock('Symfony\Component\Security\Http\HttpUtils');
         $httpUtils->expects($this->once())

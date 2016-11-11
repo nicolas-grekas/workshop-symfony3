@@ -1,5 +1,5 @@
 {
-    "Version": "2.1.22.93",
+    "Version": "2.1.12.94",
     "Names": {
         "ADP": [
             "ADP",
@@ -223,7 +223,7 @@
         ],
         "CNY": [
             "CN¥",
-            "kitajski juan"
+            "kitajski juan renminbi"
         ],
         "COP": [
             "COP",
@@ -987,7 +987,7 @@
         ],
         "XOF": [
             "CFA",
-            "zahodnoafriški frank CFA"
+            "CFA frank BCEAO"
         ],
         "XPF": [
             "CFPF",

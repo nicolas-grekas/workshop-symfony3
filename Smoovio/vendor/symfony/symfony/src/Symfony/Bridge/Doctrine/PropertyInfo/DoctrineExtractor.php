@@ -88,8 +88,7 @@ class DoctrineExtractor implements PropertyListExtractorInterface, PropertyTypeE
 
                 if (isset($associationMapping['indexBy'])) {
                     $indexProperty = $associationMapping['indexBy'];
-                    $subMetadata = $this->classMetadataFactory->getMetadataFor($associationMapping['targetEntity']);
-                    $typeOfField = $subMetadata->getTypeOfField($indexProperty);
+                    $typeOfField = $metadata->getTypeOfField($indexProperty);
 
                     $collectionKeyType = $this->getPhpType($typeOfField);
                 }
@@ -179,12 +178,12 @@ class DoctrineExtractor implements PropertyListExtractorInterface, PropertyTypeE
                 return Type::BUILTIN_TYPE_INT;
 
             case DBALType::FLOAT:
+            case DBALType::DECIMAL:
                 return Type::BUILTIN_TYPE_FLOAT;
 
             case DBALType::STRING:
             case DBALType::TEXT:
             case DBALType::GUID:
-            case DBALType::DECIMAL:
                 return Type::BUILTIN_TYPE_STRING;
 
             case DBALType::BOOLEAN:

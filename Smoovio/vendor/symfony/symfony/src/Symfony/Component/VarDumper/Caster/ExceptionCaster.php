@@ -150,19 +150,15 @@ class ExceptionCaster
 
                 if (!empty($f['class']) && is_subclass_of($f['class'], 'Twig_Template') && method_exists($f['class'], 'getDebugInfo')) {
                     $template = isset($f['object']) ? $f['object'] : new $f['class'](new \Twig_Environment(new \Twig_Loader_Filesystem()));
-                    $templateName = $template->getTemplateName();
-                    $templateSrc = method_exists($template, 'getSourceContext') ? $template->getSourceContext()->getCode() : (method_exists($template, 'getSource') ? $template->getSource() : '');
-                    $templateInfo = $template->getDebugInfo();
-                    if (isset($templateInfo[$f['line']])) {
-                        if (method_exists($template, 'getSourceContext')) {
-                            $templateName = $template->getSourceContext()->getPath() ?: $templateName;
-                        }
-                        if ($templateSrc) {
-                            $templateSrc = explode("\n", $templateSrc);
+
+                    try {
+                        $templateName = $template->getTemplateName();
+                        $templateSrc = explode("\n", method_exists($template, 'getSource') ? $template->getSource() : $template->getEnvironment()->getLoader()->getSource($templateName));
+                        $templateInfo = $template->getDebugInfo();
+                        if (isset($templateInfo[$f['line']])) {
                             $src[$templateName.':'.$templateInfo[$f['line']]] = self::extractSource($templateSrc, $templateInfo[$f['line']], self::$srcContext);
-                        } else {
-                            $src[$templateName] = $templateInfo[$f['line']];
                         }
+                    } catch (\Twig_Error_Loader $e) {
                     }
                 }
             } else {
@@ -185,42 +181,6 @@ class ExceptionCaster
         }
 
         return $a;
-    }
-
-    /**
-     * @deprecated since 2.8, to be removed in 3.0. Use the castTraceStub method instead.
-     */
-    public static function filterTrace(&$trace, $dumpArgs, $offset = 0)
-    {
-        @trigger_error('The '.__METHOD__.' method is deprecated since version 2.8 and will be removed in 3.0. Use the castTraceStub method instead.', E_USER_DEPRECATED);
-
-        if (0 > $offset || empty($trace[$offset])) {
-            return $trace = null;
-        }
-
-        $t = $trace[$offset];
-
-        if (empty($t['class']) && isset($t['function'])) {
-            if ('user_error' === $t['function'] || 'trigger_error' === $t['function']) {
-                ++$offset;
-            }
-        }
-
-        if ($offset) {
-            array_splice($trace, 0, $offset);
-        }
-
-        foreach ($trace as &$t) {
-            $t = array(
-                'call' => (isset($t['class']) ? $t['class'].$t['type'] : '').$t['function'].'()',
-                'file' => isset($t['line']) ? "{$t['file']}:{$t['line']}" : '',
-                'args' => &$t['args'],
-            );
-
-            if (!isset($t['args']) || !$dumpArgs) {
-                unset($t['args']);
-            }
-        }
     }
 
     private static function filterExceptionArray($xClass, array $a, $xPrefix, $filter)

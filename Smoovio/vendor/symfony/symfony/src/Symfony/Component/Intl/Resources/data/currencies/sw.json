@@ -1,5 +1,5 @@
 {
-    "Version": "2.1.22.93",
+    "Version": "2.1.12.94",
     "Names": {
         "AED": [
             "AED",
@@ -7,7 +7,7 @@
         ],
         "AFN": [
             "AFN",
-            "Afghani ya Afghanistan"
+            "Afghani ya Afuganistani"
         ],
         "ALL": [
             "ALL",
@@ -59,7 +59,7 @@
         ],
         "BHD": [
             "BHD",
-            "Dinar ya Bahareni"
+            "Dinari ya Bahareni"
         ],
         "BIF": [
             "BIF",
@@ -139,7 +139,7 @@
         ],
         "CVE": [
             "CVE",
-            "Eskudo ya Cape Verde"
+            "Eskudo ya Kepuvede"
         ],
         "CZK": [
             "CZK",
@@ -171,7 +171,7 @@
         ],
         "ETB": [
             "ETB",
-            "Birr ya Uhabeshi"
+            "Nirr ya Uhabeshi"
         ],
         "EUR": [
             "€",
@@ -259,7 +259,7 @@
         ],
         "IQD": [
             "IQD",
-            "Dinar ya Iraki"
+            "Dinari ya Iraki"
         ],
         "IRR": [
             "IRR",
@@ -267,7 +267,7 @@
         ],
         "ISK": [
             "ISK",
-            "Krona ya Aisilandi"
+            "Krona ya Isilandi"
         ],
         "JMD": [
             "JMD",
@@ -275,7 +275,7 @@
         ],
         "JOD": [
             "JOD",
-            "Dinar ya Yordani"
+            "Dinari ya Yordani"
         ],
         "JPY": [
             "JP¥",
@@ -287,7 +287,7 @@
         ],
         "KGS": [
             "KGS",
-            "Som ya Kyrgystani"
+            "Som ya Kirigistani"
         ],
         "KHR": [
             "KHR",
@@ -307,7 +307,7 @@
         ],
         "KWD": [
             "KWD",
-            "Dinar ya Kuwaiti"
+            "Dinari ya Kuwaiti"
         ],
         "KYD": [
             "KYD",
@@ -327,7 +327,7 @@
         ],
         "LKR": [
             "LKR",
-            "Rupia ya Sri Lanka"
+            "Rupia ya Sirilanka"
         ],
         "LRD": [
             "LRD",
@@ -467,7 +467,7 @@
         ],
         "QAR": [
             "QAR",
-            "Rial ya Qatari"
+            "Rial ya Katari"
         ],
         "RON": [
             "RON",
@@ -519,7 +519,7 @@
         ],
         "SLL": [
             "SLL",
-            "Leone"
+            "Leoni"
         ],
         "SOS": [
             "SOS",
@@ -607,7 +607,7 @@
         ],
         "VND": [
             "₫",
-            "Dong ya Vietnam"
+            "Dong ya Vietinamu"
         ],
         "VUV": [
             "VUV",

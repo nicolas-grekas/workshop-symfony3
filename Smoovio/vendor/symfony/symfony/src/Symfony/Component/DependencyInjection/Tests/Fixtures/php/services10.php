@@ -2,7 +2,6 @@
 
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Container;
-use Symfony\Component\DependencyInjection\Exception\InactiveScopeException;
 use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Exception\LogicException;
 use Symfony\Component\DependencyInjection\Exception\RuntimeException;
@@ -26,11 +25,7 @@ class ProjectServiceContainer extends Container
     {
         $this->parameters = $this->getDefaultParameters();
 
-        $this->services =
-        $this->scopedServices =
-        $this->scopeStacks = array();
-        $this->scopes = array();
-        $this->scopeChildren = array();
+        $this->services = array();
         $this->methodMap = array(
             'test' => 'getTestService',
         );
@@ -44,14 +39,6 @@ class ProjectServiceContainer extends Container
     public function compile()
     {
         throw new LogicException('You cannot compile a dumped frozen container.');
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function isFrozen()
-    {
-        return true;
     }
 
     /**

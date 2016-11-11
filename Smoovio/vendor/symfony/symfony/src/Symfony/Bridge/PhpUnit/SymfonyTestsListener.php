@@ -31,15 +31,12 @@ class SymfonyTestsListener extends \PHPUnit_Framework_BaseTestListener
      */
     public function __construct(array $mockedNamespaces = array())
     {
-        $warn = false;
         foreach ($mockedNamespaces as $type => $namespaces) {
             if (!is_array($namespaces)) {
                 $namespaces = array($namespaces);
             }
             if (is_int($type)) {
-                // @deprecated BC with v2.8 to v3.0
                 $type = 'time-sensitive';
-                $warn = true;
             }
             if ('time-sensitive' === $type) {
                 foreach ($namespaces as $ns) {
@@ -51,9 +48,6 @@ class SymfonyTestsListener extends \PHPUnit_Framework_BaseTestListener
             $this->state = -2;
         } else {
             self::$globallyEnabled = true;
-            if ($warn) {
-                echo "Clock-mocked namespaces for SymfonyTestsListener need to be nested in a \"time-sensitive\" key. This will be enforced in Symfony 4.0.\n";
-            }
         }
     }
 

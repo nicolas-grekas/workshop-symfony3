@@ -119,9 +119,8 @@ EOF
         // load any messages from templates
         $extractedCatalogue = new MessageCatalogue($input->getArgument('locale'));
         $io->comment('Parsing templates...');
-        $prefix = $input->getOption('prefix');
         $extractor = $this->getContainer()->get('translation.extractor');
-        $extractor->setPrefix(null === $prefix ? '' : $prefix);
+        $extractor->setPrefix($input->getOption('prefix'));
         foreach ($transPaths as $path) {
             $path .= 'views';
             if (is_dir($path)) {
@@ -161,8 +160,11 @@ EOF
             foreach ($operation->getDomains() as $domain) {
                 $newKeys = array_keys($operation->getNewMessages($domain));
                 $allKeys = array_keys($operation->getMessages($domain));
+                $domainMessagesCount = count($newKeys) + count($allKeys);
 
-                $list = array_merge(
+                $io->section(sprintf('Messages extracted for domain "<info>%s</info>" (%d messages)', $domain, $domainMessagesCount));
+
+                $io->listing(array_merge(
                     array_diff($allKeys, $newKeys),
                     array_map(function ($id) {
                         return sprintf('<fg=green>%s</>', $id);
@@ -170,12 +172,7 @@ EOF
                     array_map(function ($id) {
                         return sprintf('<fg=red>%s</>', $id);
                     }, array_keys($operation->getObsoleteMessages($domain)))
-                );
-
-                $domainMessagesCount = count($list);
-
-                $io->section(sprintf('Messages extracted for domain "<info>%s</info>" (%d message%s)', $domain, $domainMessagesCount, $domainMessagesCount > 1 ? 's' : ''));
-                $io->listing($list);
+                ));
 
                 $extractedMessagesCount += $domainMessagesCount;
             }
@@ -184,7 +181,7 @@ EOF
                 $io->comment('Xliff output version is <info>1.2</info>');
             }
 
-            $resultMessage = sprintf('%d message%s successfully extracted', $extractedMessagesCount, $extractedMessagesCount > 1 ? 's were' : ' was');
+            $resultMessage = sprintf('%d messages were successfully extracted', $extractedMessagesCount);
         }
 
         if ($input->getOption('no-backup') === true) {

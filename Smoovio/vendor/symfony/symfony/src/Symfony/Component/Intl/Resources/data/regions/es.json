@@ -1,5 +1,5 @@
 {
-    "Version": "2.1.23.18",
+    "Version": "2.1.13.21",
     "Names": {
         "AC": "Isla de la Ascensión",
         "AD": "Andorra",
@@ -54,7 +54,7 @@
         "CU": "Cuba",
         "CV": "Cabo Verde",
         "CW": "Curazao",
-        "CX": "Isla de Navidad",
+        "CX": "Isla de Navidad (Christmas)",
         "CY": "Chipre",
         "CZ": "República Checa",
         "DE": "Alemania",
@@ -102,7 +102,7 @@
         "HR": "Croacia",
         "HT": "Haití",
         "HU": "Hungría",
-        "IC": "Canarias",
+        "IC": "islas Canarias",
         "ID": "Indonesia",
         "IE": "Irlanda",
         "IL": "Israel",
@@ -187,7 +187,7 @@
         "PR": "Puerto Rico",
         "PS": "Territorios Palestinos",
         "PT": "Portugal",
-        "PW": "Palaos",
+        "PW": "Palau",
         "PY": "Paraguay",
         "QA": "Catar",
         "RE": "Reunión",

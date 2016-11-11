@@ -85,22 +85,6 @@ class Route extends SymfonyRoute implements RouteObjectInterface
     }
 
     /**
-     * @deprecated use getOption('add_format_pattern') instead
-     */
-    public function getAddFormatPattern()
-    {
-        return $this->getOption('add_format_pattern');
-    }
-
-    /**
-     * @deprecated use setOption('add_format_pattern', $bool) instead
-     */
-    public function setAddFormatPattern($addFormatPattern)
-    {
-        $this->setOption('add_format_pattern', $addFormatPattern);
-    }
-
-    /**
      * {@inheritdoc}
      */
     public function getRouteKey()
@@ -220,17 +204,6 @@ class Route extends SymfonyRoute implements RouteObjectInterface
     }
 
     /**
-     * We need to overwrite this to avoid issues with the legacy code in
-     * SymfonyRoute.
-     *
-     * @deprecated Use getPath instead.
-     */
-    public function getPattern()
-    {
-        return $this->getPath();
-    }
-
-    /**
      * {@inheritdoc}
      */
     public function getPath()
@@ -243,7 +216,7 @@ class Route extends SymfonyRoute implements RouteObjectInterface
         $pattern .= $this->getVariablePattern();
         if ($this->getOption('add_format_pattern') && !preg_match('/(.+)\.[a-z]+$/i', $pattern, $matches)) {
             $pattern .= '.{_format}';
-        };
+        }
 
         return $pattern;
     }

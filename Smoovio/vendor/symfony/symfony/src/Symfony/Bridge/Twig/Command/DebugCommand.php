@@ -139,6 +139,7 @@ EOF
             return;
         }
         if ($type === 'functions' || $type === 'filters') {
+            $args = array();
             $cb = $entity->getCallable();
             if (is_null($cb)) {
                 return;

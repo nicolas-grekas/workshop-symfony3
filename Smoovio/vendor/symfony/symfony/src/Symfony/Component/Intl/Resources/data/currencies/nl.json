@@ -1,5 +1,5 @@
 {
-    "Version": "2.1.23.81",
+    "Version": "2.1.12.94",
     "Names": {
         "ADP": [
             "ADP",
@@ -263,7 +263,7 @@
         ],
         "CNY": [
             "CN¥",
-            "Chinese renminbi"
+            "Chinese yuan renminbi"
         ],
         "COP": [
             "COP",
@@ -415,7 +415,7 @@
         ],
         "GNF": [
             "GNF",
-            "Guinese frank"
+            "Guinese franc"
         ],
         "GNS": [
             "GNS",
@@ -563,7 +563,7 @@
         ],
         "KYD": [
             "KYD",
-            "Kaaimaneilandse dollar"
+            "Caymaneilandse dollar"
         ],
         "KZT": [
             "KZT",
@@ -1035,7 +1035,7 @@
         ],
         "VNN": [
             "VNN",
-            "Vietnamese dong (1978–1985)"
+            "Oude Vietnamese dong (1978–1985)"
         ],
         "VUV": [
             "VUV",
@@ -1071,7 +1071,7 @@
         ],
         "XPF": [
             "XPF",
-            "CFP-frank"
+            "CFP-franc"
         ],
         "XRE": [
             "XRE",

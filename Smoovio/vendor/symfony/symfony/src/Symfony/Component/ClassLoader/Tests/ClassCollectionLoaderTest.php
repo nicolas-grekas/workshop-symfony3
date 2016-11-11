@@ -20,9 +20,6 @@ require_once __DIR__.'/Fixtures/ClassesWithParents/A.php';
 
 class ClassCollectionLoaderTest extends \PHPUnit_Framework_TestCase
 {
-    /**
-     * @requires PHP 5.4
-     */
     public function testTraitDependencies()
     {
         require_once __DIR__.'/Fixtures/deps/traits.php';
@@ -31,14 +28,14 @@ class ClassCollectionLoaderTest extends \PHPUnit_Framework_TestCase
         $m = $r->getMethod('getOrderedClasses');
         $m->setAccessible(true);
 
-        $ordered = $m->invoke(null, array('CTFoo'));
+        $ordered = $m->invoke('Symfony\Component\ClassLoader\ClassCollectionLoader', array('CTFoo'));
 
         $this->assertEquals(
             array('TD', 'TC', 'TB', 'TA', 'TZ', 'CTFoo'),
             array_map(function ($class) { return $class->getName(); }, $ordered)
         );
 
-        $ordered = $m->invoke(null, array('CTBar'));
+        $ordered = $m->invoke('Symfony\Component\ClassLoader\ClassCollectionLoader', array('CTBar'));
 
         $this->assertEquals(
             array('TD', 'TZ', 'TC', 'TB', 'TA', 'CTBar'),
@@ -62,7 +59,7 @@ class ClassCollectionLoaderTest extends \PHPUnit_Framework_TestCase
         $m = $r->getMethod('getOrderedClasses');
         $m->setAccessible(true);
 
-        $ordered = $m->invoke(null, $classes);
+        $ordered = $m->invoke('Symfony\Component\ClassLoader\ClassCollectionLoader', $classes);
 
         $this->assertEquals($expected, array_map(function ($class) { return $class->getName(); }, $ordered));
     }
@@ -94,7 +91,6 @@ class ClassCollectionLoaderTest extends \PHPUnit_Framework_TestCase
 
     /**
      * @dataProvider getDifferentOrdersForTraits
-     * @requires PHP 5.4
      */
     public function testClassWithTraitsReordering(array $classes)
     {
@@ -120,7 +116,7 @@ class ClassCollectionLoaderTest extends \PHPUnit_Framework_TestCase
         $m = $r->getMethod('getOrderedClasses');
         $m->setAccessible(true);
 
-        $ordered = $m->invoke(null, $classes);
+        $ordered = $m->invoke('Symfony\Component\ClassLoader\ClassCollectionLoader', $classes);
 
         $this->assertEquals($expected, array_map(function ($class) { return $class->getName(); }, $ordered));
     }
@@ -138,9 +134,6 @@ class ClassCollectionLoaderTest extends \PHPUnit_Framework_TestCase
         );
     }
 
-    /**
-     * @requires PHP 5.4
-     */
     public function testFixClassWithTraitsOrdering()
     {
         require_once __DIR__.'/Fixtures/ClassesWithParents/CTrait.php';
@@ -162,7 +155,7 @@ class ClassCollectionLoaderTest extends \PHPUnit_Framework_TestCase
         $m = $r->getMethod('getOrderedClasses');
         $m->setAccessible(true);
 
-        $ordered = $m->invoke(null, $classes);
+        $ordered = $m->invoke('Symfony\Component\ClassLoader\ClassCollectionLoader', $classes);
 
         $this->assertEquals($expected, array_map(function ($class) { return $class->getName(); }, $ordered));
     }
@@ -223,20 +216,18 @@ class ClassCollectionLoaderTest extends \PHPUnit_Framework_TestCase
 
     public function testCommentStripping()
     {
-        if (is_file($file = __DIR__.'/bar.php')) {
+        if (is_file($file = sys_get_temp_dir().'/bar.php')) {
             unlink($file);
         }
         spl_autoload_register($r = function ($class) {
             if (0 === strpos($class, 'Namespaced') || 0 === strpos($class, 'Pearlike_')) {
-                @require_once __DIR__.'/Fixtures/'.str_replace(array('\\', '_'), '/', $class).'.php';
+                require_once __DIR__.'/Fixtures/'.str_replace(array('\\', '_'), '/', $class).'.php';
             }
         });
 
-        $strictTypes = defined('HHVM_VERSION') ? '' : "\nnamespace {require __DIR__.'/Fixtures/Namespaced/WithStrictTypes.php';}";
-
         ClassCollectionLoader::load(
-            array('Namespaced\\WithComments', 'Pearlike_WithComments', $strictTypes ? 'Namespaced\\WithStrictTypes' : 'Namespaced\\WithComments'),
-            __DIR__,
+            array('Namespaced\\WithComments', 'Pearlike_WithComments'),
+            sys_get_temp_dir(),
             'bar',
             false
         );
@@ -276,9 +267,7 @@ public static $loaded = true;
 }
 }
 EOF
-            .$strictTypes,
-            str_replace(array("<?php \n", '\\\\'), array('', '/'), file_get_contents($file))
-        );
+        , str_replace("<?php \n", '', file_get_contents($file)));
 
         unlink($file);
     }

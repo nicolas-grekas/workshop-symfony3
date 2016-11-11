@@ -1,5 +1,5 @@
 {
-    "Version": "2.1.22.93",
+    "Version": "2.1.10.93",
     "Names": {
         "AED": [
             "AED",
@@ -135,7 +135,7 @@
         ],
         "CUP": [
             "CUP",
-            "i-Cuban Peso"
+            "I-Cuban Peso"
         ],
         "CVE": [
             "CVE",
@@ -395,7 +395,7 @@
         ],
         "MZN": [
             "MZN",
-            "i-Mozambican Metical"
+            "I-Metical yase-Mozambicque"
         ],
         "NAD": [
             "NAD",
@@ -459,7 +459,7 @@
         ],
         "RON": [
             "RON",
-            "i-Romanian Leu"
+            "I-Romanian Leu"
         ],
         "RSD": [
             "RSD",
@@ -515,7 +515,7 @@
         ],
         "SSP": [
             "SSP",
-            "i-South Sudanese Pound"
+            "Upondo waseNingizimu Sudan"
         ],
         "STD": [
             "STD",

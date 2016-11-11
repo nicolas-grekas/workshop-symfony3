@@ -11,7 +11,6 @@
 
 namespace Symfony\Component\Security\Http\Tests\EntryPoint;
 
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Http\EntryPoint\FormAuthenticationEntryPoint;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 
@@ -20,7 +19,7 @@ class FormAuthenticationEntryPointTest extends \PHPUnit_Framework_TestCase
     public function testStart()
     {
         $request = $this->getMock('Symfony\Component\HttpFoundation\Request', array(), array(), '', false, false);
-        $response = new Response();
+        $response = $this->getMock('Symfony\Component\HttpFoundation\Response');
 
         $httpKernel = $this->getMock('Symfony\Component\HttpKernel\HttpKernelInterface');
         $httpUtils = $this->getMock('Symfony\Component\Security\Http\HttpUtils');
@@ -40,7 +39,7 @@ class FormAuthenticationEntryPointTest extends \PHPUnit_Framework_TestCase
     {
         $request = $this->getMock('Symfony\Component\HttpFoundation\Request', array(), array(), '', false, false);
         $subRequest = $this->getMock('Symfony\Component\HttpFoundation\Request', array(), array(), '', false, false);
-        $response = new Response('', 200);
+        $response = new \Symfony\Component\HttpFoundation\Response('', 200);
 
         $httpUtils = $this->getMock('Symfony\Component\Security\Http\HttpUtils');
         $httpUtils

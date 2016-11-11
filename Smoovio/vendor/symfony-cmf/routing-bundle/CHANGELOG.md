@@ -1,6 +1,17 @@
 Changelog
 =========
 
+ * **2016-10-10**: [ORM] Add option to use custom Route class in ORM
+ * **2016-06-18**: [BC BREAK] Removed all `*.class` parameters.
+ * **2016-06-18**: [BC BREAK] Removed the `cmf_routing.dynamic.persistence.phpcr.route_basepath`
+   setting.
+ * **2016-06-18**: [BC BREAK] Removed the `getAddFormatPattern()`/`setAddFormatPattern()`
+   and `getPattern()` methods from the model `Route`.
+ * **2016-06-18**: [BC BREAK] Removed the `getAddTrailingSlash()`/`setAddTrailingSlash()`
+   and `getParent()`/`setParent()` methods from the PHPCR `Route` and `RedirectRoute`.
+ * **2016-06-18**: [BC BREAK] Removed `RouteAdmin::setControllerResolver()` and
+   `RouteAdmin::$controllerResolver`.
+
 1.4.0
 -----
 

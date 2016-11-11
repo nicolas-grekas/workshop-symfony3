@@ -45,7 +45,7 @@ class FormThemeTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals(
             sprintf(
-                '$this->env->getExtension(\'Symfony\Bridge\Twig\Extension\FormExtension\')->renderer->setTheme(%s, array(0 => "tpl1", 1 => "tpl2"));',
+                '$this->env->getExtension(\'form\')->renderer->setTheme(%s, array(0 => "tpl1", 1 => "tpl2"));',
                 $this->getVariableGetter('form')
              ),
             trim($compiler->compile($node)->getSource())
@@ -57,7 +57,7 @@ class FormThemeTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals(
             sprintf(
-                '$this->env->getExtension(\'Symfony\Bridge\Twig\Extension\FormExtension\')->renderer->setTheme(%s, "tpl1");',
+                '$this->env->getExtension(\'form\')->renderer->setTheme(%s, "tpl1");',
                 $this->getVariableGetter('form')
              ),
             trim($compiler->compile($node)->getSource())
@@ -66,10 +66,6 @@ class FormThemeTest extends \PHPUnit_Framework_TestCase
 
     protected function getVariableGetter($name)
     {
-        if (PHP_VERSION_ID >= 50400) {
-            return sprintf('(isset($context["%s"]) ? $context["%s"] : null)', $name, $name);
-        }
-
-        return sprintf('$this->getContext($context, "%s")', $name);
+        return sprintf('(isset($context["%s"]) ? $context["%s"] : null)', $name, $name);
     }
 }

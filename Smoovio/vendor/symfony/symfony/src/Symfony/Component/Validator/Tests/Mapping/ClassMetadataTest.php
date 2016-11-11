@@ -138,33 +138,16 @@ class ClassMetadataTest extends \PHPUnit_Framework_TestCase
         $this->metadata->mergeConstraints($parent);
         $this->metadata->addPropertyConstraint('firstName', new ConstraintA());
 
-        $constraintA1 = new ConstraintA(array('groups' => array(
-            'Default',
-            'EntityParent',
-            'Entity',
-        )));
-        $constraintA2 = new ConstraintA(array('groups' => array(
-            'Default',
-            'Entity',
-        )));
-
         $constraints = array(
-            $constraintA1,
-            $constraintA2,
-        );
-
-        $constraintsByGroup = array(
-            'Default' => array(
-                $constraintA1,
-                $constraintA2,
-            ),
-            'EntityParent' => array(
-                $constraintA1,
-            ),
-            'Entity' => array(
-                $constraintA1,
-                $constraintA2,
-            ),
+            new ConstraintA(array('groups' => array(
+                'Default',
+                'EntityParent',
+                'Entity',
+            ))),
+            new ConstraintA(array('groups' => array(
+                'Default',
+                'Entity',
+            ))),
         );
 
         $members = $this->metadata->getPropertyMetadata('firstName');
@@ -172,7 +155,6 @@ class ClassMetadataTest extends \PHPUnit_Framework_TestCase
         $this->assertCount(1, $members);
         $this->assertEquals(self::PARENTCLASS, $members[0]->getClassName());
         $this->assertEquals($constraints, $members[0]->getConstraints());
-        $this->assertEquals($constraintsByGroup, $members[0]->constraintsByGroup);
     }
 
     public function testMemberMetadatas()

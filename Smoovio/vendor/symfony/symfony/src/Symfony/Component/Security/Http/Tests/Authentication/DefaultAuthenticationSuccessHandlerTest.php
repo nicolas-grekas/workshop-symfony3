@@ -11,7 +11,6 @@
 
 namespace Symfony\Component\Security\Http\Tests\Authentication;
 
-use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Http\Authentication\DefaultAuthenticationSuccessHandler;
 
 class DefaultAuthenticationSuccessHandlerTest extends \PHPUnit_Framework_TestCase
@@ -172,7 +171,8 @@ class DefaultAuthenticationSuccessHandlerTest extends \PHPUnit_Framework_TestCas
 
     private function expectRedirectResponse($path)
     {
-        $response = new Response();
+        $response = $this->getMock('Symfony\Component\HttpFoundation\Response');
+
         $this->httpUtils->expects($this->once())
             ->method('createRedirectResponse')
             ->with($this->request, $path)

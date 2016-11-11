@@ -12,7 +12,6 @@
 namespace Symfony\Bundle\FrameworkBundle\Tests\Templating;
 
 use Symfony\Bundle\FrameworkBundle\Templating\DelegatingEngine;
-use Symfony\Component\HttpFoundation\Response;
 
 class DelegatingEngineTest extends \PHPUnit_Framework_TestCase
 {
@@ -61,7 +60,7 @@ class DelegatingEngineTest extends \PHPUnit_Framework_TestCase
 
     public function testRenderResponseWithFrameworkEngine()
     {
-        $response = new Response();
+        $response = $this->getMock('Symfony\Component\HttpFoundation\Response');
         $engine = $this->getFrameworkEngineMock('template.php', true);
         $engine->expects($this->once())
             ->method('renderResponse')
