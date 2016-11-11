@@ -53,6 +53,7 @@ class ComposerStaticInitdb65d84c72205cdda3997cb07ba4de0b
             'Symfony\\Bridge\\PhpUnit\\' => 23,
             'Symfony\\Bridge\\Monolog\\' => 23,
             'Symfony\\Bridge\\Doctrine\\' => 24,
+            'Sensio\\Bundle\\GeneratorBundle\\' => 30,
             'Sensio\\Bundle\\FrameworkExtraBundle\\' => 35,
         ),
         'P' => 
@@ -182,6 +183,10 @@ class ComposerStaticInitdb65d84c72205cdda3997cb07ba4de0b
         array (
             0 => __DIR__ . '/..' . '/symfony/symfony/src/Symfony/Bridge/Doctrine',
         ),
+        'Sensio\\Bundle\\GeneratorBundle\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/sensio/generator-bundle',
+        ),
         'Sensio\\Bundle\\FrameworkExtraBundle\\' => 
         array (
             0 => __DIR__ . '/..' . '/sensio/framework-extra-bundle',
@@ -254,10 +259,6 @@ class ComposerStaticInitdb65d84c72205cdda3997cb07ba4de0b
         ),
         'S' => 
         array (
-            'Sensio\\Bundle\\GeneratorBundle' => 
-            array (
-                0 => __DIR__ . '/..' . '/sensio/generator-bundle',
-            ),
             'Sensio\\Bundle\\DistributionBundle' => 
             array (
                 0 => __DIR__ . '/..' . '/sensio/distribution-bundle',

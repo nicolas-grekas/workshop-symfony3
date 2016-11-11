@@ -20,7 +20,7 @@
         "incenteev/composer-parameter-handler": "~2.0",
 
         "symfony-cmf/routing-bundle": "@stable",
-        "sensio/generator-bundle": "~2.3",
+        "sensio/generator-bundle": "~3.0",
         "willdurand/negotiation": "@stable",
         "cocur/slugify": "@stable",
         "doctrine/doctrine-fixtures-bundle": "~2.2",
