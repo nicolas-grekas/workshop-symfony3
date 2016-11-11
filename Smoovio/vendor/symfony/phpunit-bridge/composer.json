@@ -30,10 +30,13 @@
             "/Tests/"
         ]
     },
+    "bin": [
+        "bin/simple-phpunit"
+    ],
     "minimum-stability": "dev",
     "extra": {
         "branch-alias": {
-            "dev-master": "2.8-dev"
+            "dev-master": "3.2-dev"
         }
     }
 }

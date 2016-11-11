@@ -25,9 +25,12 @@ class SymfonyTestsListener extends \PHPUnit_Framework_BaseTestListener
     private $skippedFile = false;
     private $wasSkipped = array();
     private $isSkipped = array();
+    private $expectedDeprecations;
+    private $gatheredDeprecations;
+    private $previousErrorHandler;
 
     /**
-     * @param array $mockedNamespaces List of namespaces, indexed by mocked features (time-sensitive)
+     * @param array $mockedNamespaces List of namespaces, indexed by mocked features (time-sensitive or dns-sensitive)
      */
     public function __construct(array $mockedNamespaces = array())
     {
@@ -44,6 +47,11 @@ class SymfonyTestsListener extends \PHPUnit_Framework_BaseTestListener
             if ('time-sensitive' === $type) {
                 foreach ($namespaces as $ns) {
                     ClockMock::register($ns.'\DummyClass');
+                }
+            }
+            if ('dns-sensitive' === $type) {
+                foreach ($namespaces as $ns) {
+                    DnsMock::register($ns.'\DummyClass');
                 }
             }
         }
@@ -100,6 +108,9 @@ class SymfonyTestsListener extends \PHPUnit_Framework_BaseTestListener
                         if (in_array('time-sensitive', $groups, true)) {
                             ClockMock::register($test->getName());
                         }
+                        if (in_array('dns-sensitive', $groups, true)) {
+                            DnsMock::register($test->getName());
+                        }
                     }
                 }
             }
@@ -134,23 +145,66 @@ class SymfonyTestsListener extends \PHPUnit_Framework_BaseTestListener
     public function startTest(\PHPUnit_Framework_Test $test)
     {
         if (-2 < $this->state && $test instanceof \PHPUnit_Framework_TestCase) {
-            $groups = \PHPUnit_Util_Test::getGroups(get_class($test), $test->getName());
+            $groups = \PHPUnit_Util_Test::getGroups(get_class($test), $test->getName(false));
 
             if (in_array('time-sensitive', $groups, true)) {
                 ClockMock::register(get_class($test));
                 ClockMock::withClockMock(true);
+            }
+            if (in_array('dns-sensitive', $groups, true)) {
+                DnsMock::register(get_class($test));
+            }
+
+            $annotations = \PHPUnit_Util_Test::parseTestMethodAnnotations(get_class($test), $test->getName(false));
+
+            if (isset($annotations['class']['expectedDeprecation'])) {
+                $test->getTestResultObject()->addError($test, new \PHPUnit_Framework_AssertionFailedError('`@expectedDeprecation` annotations are not allowed at the class level.'), 0);
+            }
+            if (isset($annotations['method']['expectedDeprecation'])) {
+                if (!in_array('legacy', $groups, true)) {
+                    $test->getTestResultObject()->addError($test, new \PHPUnit_Framework_AssertionFailedError('Only tests with the `@group legacy` annotation can have `@expectedDeprecation`.'), 0);
+                }
+                $this->expectedDeprecations = $annotations['method']['expectedDeprecation'];
+                $this->previousErrorHandler = set_error_handler(array($this, 'handleError'));
             }
         }
     }
 
     public function endTest(\PHPUnit_Framework_Test $test, $time)
     {
+        if ($this->expectedDeprecations) {
+            restore_error_handler();
+            try {
+                $prefix = "@expectedDeprecation:\n  ";
+                $test->assertStringMatchesFormat($prefix.implode("\n  ", $this->expectedDeprecations), $prefix.implode("\n  ", $this->gatheredDeprecations));
+            } catch (\PHPUnit_Framework_AssertionFailedError $e) {
+                $test->getTestResultObject()->addFailure($test, $e, $time);
+            }
+
+            $this->expectedDeprecations = $this->gatheredDeprecations = $this->previousErrorHandler = null;
+        }
         if (-2 < $this->state && $test instanceof \PHPUnit_Framework_TestCase) {
-            $groups = \PHPUnit_Util_Test::getGroups(get_class($test), $test->getName());
+            $groups = \PHPUnit_Util_Test::getGroups(get_class($test), $test->getName(false));
 
             if (in_array('time-sensitive', $groups, true)) {
                 ClockMock::withClockMock(false);
             }
+            if (in_array('dns-sensitive', $groups, true)) {
+                DnsMock::withMockedHosts(array());
+            }
         }
+    }
+
+    public function handleError($type, $msg, $file, $line, $context)
+    {
+        if (E_USER_DEPRECATED !== $type && E_DEPRECATED !== $type) {
+            $h = $this->previousErrorHandler;
+
+            return $h ? $h($type, $msg, $file, $line, $context) : false;
+        }
+        if (error_reporting()) {
+            $msg = 'Unsilenced deprecation: '.$msg;
+        }
+        $this->gatheredDeprecations[] = $msg;
     }
 }
